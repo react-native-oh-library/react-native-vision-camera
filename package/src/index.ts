@@ -1,6 +1,8 @@
 export * from './Camera'
 export * from './CameraError'
 export * from './FrameProcessorPlugins'
+export * from './NativeVisionCamera'
+export * from './RTNVisionCameraNativeComponent'
 
 export * from './types/CameraDevice'
 export * from './types/CameraProps'

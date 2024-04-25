@@ -1,0 +1,108 @@
+[2024-04-25T14:36:47.725] [DEBUG] debug-file - env: nodejsVersion=v18.17.0
+[2024-04-25T14:36:47.727] [DEBUG] debug-file - env: hvigor-config.json5 content = { hvigorVersion: '', dependencies: {} }
+[2024-04-25T14:36:47.844] [DEBUG] debug-file - env: daemon=true
+[2024-04-25T14:36:48.463] [DEBUG] debug-file - hvigor start cli arguments:{
+  prop: [ 'product=default', 'module=vision_camera@default' ],
+  mode: 'module',
+  parallel: true,
+  incremental: true,
+  daemon: true,
+  _: [ 'assembleHar' ],
+  analyze: 'normal'
+}
+[2024-04-25T14:36:48.485] [DEBUG] debug-file - session manager: set active socket. socketId=7vS7PBTT2i-lakmWAAAB
+[2024-04-25T14:36:49.175] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2024-04-25T14:36:49.181] [DEBUG] debug-file - hvigor build process will be closed with an error.
+[2024-04-25T14:36:49.181] [WARN] debug-file - 'modules' property should be an array in root project build-profile.json5
+                at D:\rnoh\tester\harmony\vision_camera\build-profile.json5
+[2024-04-25T14:36:49.181] [DEBUG] debug-file - ERROR: stacktrace = Error: 'modules' property should be an array in root project build-profile.json5
+                at D:\rnoh\tester\harmony\vision_camera\build-profile.json5
+    at HvigorLogger.errorMessageExit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\log\hvigor-log.js:1:2796)
+    at checkProjectConfigFile (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2408)
+    at new HvigorConfig (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:948)
+    at hvigorConfigInit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2967)
+    at init (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\init.js:1:2736)
+    at start (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:2315)
+    at boot (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:1615)
+    at Worker.<anonymous> (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\daemon\cluster\worker-process-lifecycle.js:1:3292)
+    at Worker.emit (node:events:526:35)
+    at process.<anonymous> (node:internal/cluster/worker:35:12)
+[2024-04-25T14:36:49.182] [ERROR] debug-file - Error: 'modules' property should be an array in root project build-profile.json5
+                at D:\rnoh\tester\harmony\vision_camera\build-profile.json5
+    at HvigorLogger.errorMessageExit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\log\hvigor-log.js:1:2796)
+    at checkProjectConfigFile (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2408)
+    at new HvigorConfig (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:948)
+    at hvigorConfigInit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2967)
+    at init (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\init.js:1:2736)
+    at start (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:2315)
+    at boot (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:1615)
+    at Worker.<anonymous> (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\daemon\cluster\worker-process-lifecycle.js:1:3292)
+    at Worker.emit (node:events:526:35)
+    at process.<anonymous> (node:internal/cluster/worker:35:12)
+[2024-04-25T14:36:49.184] [WARN] debug-file - BUILD FAILED in 6 ms 
+[2024-04-25T14:36:49.193] [WARN] debug-file - TypeError: Cannot read properties of undefined (reading 'getName')
+    at new ProjectCacheService (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\cache\project-cache-service.js:1:1017)
+    at ProjectCacheService.getInstance (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\cache\project-cache-service.js:1:3415)
+    at wrapUpBeforeExit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\hvigor-process.js:1:8321)
+    at C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\hvigor-process.js:1:4594
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async HvigorBuildProcess.<anonymous> (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\hvigor-process.js:1:3027)
+[2024-04-25T14:36:49.194] [DEBUG] debug-file - The build request was finished
+[2024-04-25T14:36:49.196] [DEBUG] debug-file - session manager: send message to worker process.
+[2024-04-25T14:36:49.197] [DEBUG] debug-file - session manager: send message to worker process.
+[2024-04-25T14:36:49.197] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2024-04-25T14:36:49.198] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2024-04-25T14:37:02.516] [DEBUG] debug-file - env: nodejsVersion=v18.17.0
+[2024-04-25T14:37:02.518] [DEBUG] debug-file - env: hvigor-config.json5 content = { hvigorVersion: '', dependencies: {} }
+[2024-04-25T14:37:02.520] [DEBUG] debug-file - env: daemon=true
+[2024-04-25T14:37:02.942] [DEBUG] debug-file - hvigor start cli arguments:{
+  prop: [ 'product=default', 'module=vision_camera@default' ],
+  mode: 'module',
+  parallel: true,
+  incremental: true,
+  daemon: true,
+  _: [ 'assembleHar' ],
+  analyze: 'normal'
+}
+[2024-04-25T14:37:02.957] [DEBUG] debug-file - session manager: set active socket. socketId=48th2TMw5bDkpS5EAAAD
+[2024-04-25T14:37:02.965] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2024-04-25T14:37:02.971] [DEBUG] debug-file - hvigor build process will be closed with an error.
+[2024-04-25T14:37:02.971] [WARN] debug-file - 'modules' property should be an array in root project build-profile.json5
+                at D:\rnoh\tester\harmony\vision_camera\build-profile.json5
+[2024-04-25T14:37:02.972] [DEBUG] debug-file - ERROR: stacktrace = Error: 'modules' property should be an array in root project build-profile.json5
+                at D:\rnoh\tester\harmony\vision_camera\build-profile.json5
+    at HvigorLogger.errorMessageExit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\log\hvigor-log.js:1:2796)
+    at checkProjectConfigFile (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2408)
+    at new HvigorConfig (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:948)
+    at hvigorConfigInit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2967)
+    at init (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\init.js:1:2736)
+    at start (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:2315)
+    at boot (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:1615)
+    at Worker.<anonymous> (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\daemon\cluster\worker-process-lifecycle.js:1:3292)
+    at Worker.emit (node:events:526:35)
+    at process.<anonymous> (node:internal/cluster/worker:35:12)
+[2024-04-25T14:37:02.972] [ERROR] debug-file - Error: 'modules' property should be an array in root project build-profile.json5
+                at D:\rnoh\tester\harmony\vision_camera\build-profile.json5
+    at HvigorLogger.errorMessageExit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\log\hvigor-log.js:1:2796)
+    at checkProjectConfigFile (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2408)
+    at new HvigorConfig (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:948)
+    at hvigorConfigInit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\external\core\hvigor-config.js:1:2967)
+    at init (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\init.js:1:2736)
+    at start (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:2315)
+    at boot (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\boot\index.js:1:1615)
+    at Worker.<anonymous> (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\daemon\cluster\worker-process-lifecycle.js:1:3292)
+    at Worker.emit (node:events:526:35)
+    at process.<anonymous> (node:internal/cluster/worker:35:12)
+[2024-04-25T14:37:02.974] [WARN] debug-file - BUILD FAILED in 6 ms 
+[2024-04-25T14:37:02.981] [WARN] debug-file - TypeError: Cannot read properties of undefined (reading 'getName')
+    at new ProjectCacheService (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\cache\project-cache-service.js:1:1017)
+    at ProjectCacheService.getInstance (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\cache\project-cache-service.js:1:3415)
+    at wrapUpBeforeExit (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\hvigor-process.js:1:8321)
+    at C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\hvigor-process.js:1:4594
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async HvigorBuildProcess.<anonymous> (C:\Users\w002513\.hvigor\project_caches\388d8365bbc93721ea397d61dfbe0015\workspace\node_modules\.pnpm\file+D++rnoh+tester+harmony+hvigor+hvigor-4.3.0.tgz\node_modules\@ohos\hvigor\src\base\internal\lifecycle\hvigor-process.js:1:3027)
+[2024-04-25T14:37:02.981] [DEBUG] debug-file - The build request was finished
+[2024-04-25T14:37:02.982] [DEBUG] debug-file - session manager: send message to worker process.
+[2024-04-25T14:37:02.983] [DEBUG] debug-file - session manager: send message to worker process.
+[2024-04-25T14:37:02.983] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2024-04-25T14:37:02.984] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.

@@ -36,12 +36,9 @@
     }
   },
   "codegenConfig": {
-    "name": "RTNVisionCamera",
-    "type": "modules",
-    "jsSrcsDir": "src",
-    "android": {
-      "javaPackageName": "com.rtnvisioncamera"
-    }
+    "name": "RTNVisionCameraSpecs",
+    "type": "components",
+    "jsSrcsDir": "src"
   },
   "scripts": {
     "typescript": "tsc --noEmit",

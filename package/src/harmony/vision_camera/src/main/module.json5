@@ -3,9 +3,7 @@
     "name": "vision_camera",
     "type": "har",
     "deviceTypes": [
-      "default",
-      "tablet",
-      "2in1"
+      "default"
     ]
   }
 }
