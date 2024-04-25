@@ -1,6 +1,6 @@
 {
-  "name": "react-native-vision-camera",
-  "version": "4.0.1",
+  "name": "@react-native-oh-tpl/react-native-vision-camera",
+  "version": "4.0.1-0.0.1",
   "description": "A powerful, high-performance React Native Camera library.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -24,8 +24,25 @@
     "ios/**/*.swift",
     "app.plugin.js",
     "VisionCamera.podspec",
-    "README.md"
+    "README.md",
+    "harmony"
   ],
+  "harmony": {
+    "alias": "react-native-vision-camera",
+    "codegenConfig": {
+      "specPaths": [
+        "./src"
+      ]
+    }
+  },
+  "codegenConfig": {
+    "name": "RTNVisionCamera",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.rtnvisioncamera"
+    }
+  },
   "scripts": {
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -47,6 +64,7 @@
     "postpack": "rm ./README.md"
   },
   "keywords": [
+    "harmony",
     "react",
     "native",
     "camera",
