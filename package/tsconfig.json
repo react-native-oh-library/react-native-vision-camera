@@ -25,7 +25,7 @@
     "src",
     ".eslintrc.js",
     "babel.config.js",
-    "react-native.config.js",
+    "react-native.config.js", "index.ts", "index.d.ts",
   ],
   "exclude": [
     "node_modules",
