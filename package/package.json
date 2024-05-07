@@ -9,6 +9,7 @@
   "source": "src/index",
   "files": [
     "src",
+    "android",
     "react-native.config.js",
     "lib/commonjs",
     "lib/module",
