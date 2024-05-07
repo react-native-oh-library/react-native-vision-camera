@@ -1,0 +1,9 @@
+{
+  "module": {
+    "name": "vision_camera",
+    "type": "har",
+    "deviceTypes": [
+      "default"
+    ]
+  }
+}
