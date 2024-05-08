@@ -1,21 +1,24 @@
 import camera from '@ohos.multimedia.camera';
 import { BusinessError } from '@ohos.base';
 import common from '@ohos.app.ability.common';
+import grantPermission from '../utils/PermissionUtils';
+import Logger from '../utils/Logger';
+
+const TAG: string = 'CameraViewPage:';
 
 @Component
 export default struct CameraViewPage {
-
   mXComponentController: XComponentController = new XComponentController();
   surfaceId: string = '';
-  context: Context = getContext(this) as common.UIAbilityContext;
+  context: Context = getContext(this);
   cameraInput?: camera.CameraInput;
   photoSession?: camera.PhotoSession;
-  rect: SurfaceRect = {offsetX:12,offsetY:12,surfaceWidth: 1920, surfaceHeight: 1080};
+  rect: SurfaceRect = { surfaceWidth: 1920, surfaceHeight: 1080 };
 
   build() {
     Flex() {
       XComponent({
-        id: '',
+        id: 'CameraViewComponent',
         type: 'surface',
         controller: this.mXComponentController
       })
@@ -28,31 +31,37 @@ export default struct CameraViewPage {
     }
   }
 
-  aboutToAppear() {
+  async aboutToAppear() {
+    await grantPermission().then(res => {
+      Logger.info(TAG, `权限申请成功 ${JSON.stringify(res)}`);
+    }).catch((rej: BusinessError) => {
+      Logger.info(TAG, `权限申请失败 ${JSON.stringify(rej)}`);
+    })
     let cameraManager: camera.CameraManager = camera.getCameraManager(this.context);
     let cameraDevices: Array<camera.CameraDevice> = cameraManager.getSupportedCameras();
-    this.getCameraInput(cameraDevices[0],cameraManager);
-    this.getPhotoSession(cameraManager);
     let outputCapability: camera.CameraOutputCapability =
       this.getSupportedOutputCapability(cameraDevices[0], cameraManager);
     let previewOutput = this.getPreviewOutput(cameraManager, outputCapability, this.surfaceId);
+    this.getCameraInput(cameraDevices[0], cameraManager);
+    this.getPhotoSession(cameraManager);
     if (previewOutput != undefined) {
       this.startPreviewOutput(cameraManager, previewOutput);
     }
   }
 
   async aboutToDisappear(): Promise<void> {
-    if(this.photoSession){
+    if (this.photoSession) {
       await this.photoSession.release()
     }
-    if (this.cameraInput){
+    if (this.cameraInput) {
       this.cameraInput.close()
     }
   }
 
-  getSupportedOutputCapability(camera: camera.CameraDevice,
+  getSupportedOutputCapability(cameraDevice: camera.CameraDevice,
     cameraManager: camera.CameraManager): camera.CameraOutputCapability {
-    let cameraOutputCapability: camera.CameraOutputCapability = cameraManager.getSupportedOutputCapability(camera);
+    let cameraOutputCapability: camera.CameraOutputCapability =
+      cameraManager.getSupportedOutputCapability(cameraDevice, camera.SceneMode.NORMAL_PHOTO);
     return cameraOutputCapability;
   }
 
@@ -69,12 +78,13 @@ export default struct CameraViewPage {
     return previewOutput;
   }
 
-  getCameraInput(camera: camera.CameraDevice,cameraManager: camera.CameraManager) {
+  getCameraInput(camera: camera.CameraDevice, cameraManager: camera.CameraManager) {
     this.cameraInput = cameraManager.createCameraInput(camera);
     if (this.cameraInput === undefined) {
       console.error('cameraInput is undefined');
     }
   }
+
   getPhotoSession(cameraManager: camera.CameraManager) {
     this.photoSession = cameraManager.createSession(camera.SceneMode.NORMAL_PHOTO) as camera.PhotoSession;
     if (this.photoSession === undefined) {
@@ -98,7 +108,7 @@ export default struct CameraViewPage {
     }
 
     // 打开相机
-    if (this.cameraInput && this.photoSession){
+    if (this.cameraInput && this.photoSession) {
       await this.cameraInput.open();
       this.photoSession.beginConfig();
       this.photoSession.addInput(this.cameraInput);
