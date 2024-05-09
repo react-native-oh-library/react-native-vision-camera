@@ -2,7 +2,6 @@ import type { ViewProps } from "react-native/Libraries/Components/View/ViewPropT
 import type { HostComponent } from "react-native";
 import codegenNativeComponent from "react-native/Libraries/Utilities/codegenNativeComponent";
 import { BubblingEventHandler, Float, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
-// import type { CameraPosition } from "./types/CameraDevice";
 
 type Orientation = WithDefault<'portrait' | 'portrait-upside-down' | 'landscape-left' | 'landscape-right', 'portrait'>
 type AutoFocusSystem = WithDefault<'contrast-detection' | 'phase-detection' | 'none', 'contrast-detection'>
@@ -24,10 +23,10 @@ interface CameraDeviceFormat {
   minFps: Int32
   maxFps: Int32
   autoFocusSystem?: AutoFocusSystem
-  videoStabilizationModes?: WithDefault< ReadonlyArray<VideoStabilizationMode>, null>
+  videoStabilizationModes?: WithDefault<ReadonlyArray<VideoStabilizationMode>, null>
 }
 
-interface CameraDeviceH {
+interface CameraDevice {
   id: string
   physicalDevices?: WithDefault<ReadonlyArray<PhysicalCameraDeviceType>, null>
   position?: CameraPosition
@@ -49,15 +48,40 @@ interface CameraDeviceH {
   sensorOrientation?: Orientation
 }
 
+type CodeType =
+  | 'code-128'
+  | 'code-39'
+  | 'code-93'
+  | 'codabar'
+  | 'ean-13'
+  | 'ean-8'
+  | 'itf'
+  | 'upc-e'
+  | 'upc-a'
+  | 'qr'
+  | 'pdf-417'
+  | 'aztec'
+  | 'data-matrix'
+
+interface CodeScanner {
+  codeTypes?: WithDefault<ReadonlyArray<CodeType>, null>;
+  onCodeScanned: Readonly<{}>;
+  regionOfInterest?: {
+    x: Int32
+    y: Int32
+    width: Int32
+    height: Int32
+  }
+}
 
 export interface NativeProps extends ViewProps {
+  codeScanner?: CodeScanner;
   fps?: WithDefault<Int32, 30>;
   isActive: boolean;
   preview?: WithDefault<boolean, true>;
-  device?: CameraDeviceH;
+  device?: CameraDevice;
   resizeMode?: WithDefault<'cover' | 'contain', 'cover'>;
   enableZoomGesture?: WithDefault<boolean, false>;
-  // codeScanner?: CodeScanner;
   exposure?: WithDefault<Int32, 0>;
   zoom?: WithDefault<Float, 1.0>;
   audio?: WithDefault<boolean, false>;
@@ -65,7 +89,7 @@ export interface NativeProps extends ViewProps {
   onStarted?: BubblingEventHandler<Readonly<{}>>;
   onStopped?: BubblingEventHandler<Readonly<{}>>;
   onInitialized?: BubblingEventHandler<Readonly<{}>>;
-  // onError?: BubblingEventHandler<CameraRuntimeError>;
+  onError?: BubblingEventHandler<Readonly<{}>>;
 }
 
 export default codegenNativeComponent<NativeProps>(
