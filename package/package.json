@@ -42,7 +42,8 @@
     "jsSrcsDir": "src"
   },
   "scripts": {
-    "move": "npm run build && npm pack && cp ./react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz D:\\rnoh\\tester && cd D:\\rnoh\\tester && npm i @react-native-oh-tpl/react-native-vision-camera",
+    "codegen": "cd D:\\rnoh\\tester && npm run codegen",
+    "move": "npm run build && npm pack && cp ./react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz D:\\rnoh\\tester && cd D:\\rnoh\\tester && npm i @react-native-oh-tpl/react-native-vision-camera && npm run codegen",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint-ci": "yarn lint -f ./node_modules/@firmnav/eslint-github-actions-formatter/dist/formatter.js",

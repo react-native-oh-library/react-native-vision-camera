@@ -1,4 +1,3 @@
-import { Float, Int32, WithDefault } from 'react-native/Libraries/Types/CodegenTypes'
 import type { Orientation } from './Orientation'
 
 /**
@@ -8,7 +7,7 @@ import type { Orientation } from './Orientation'
  * * `"front"`: Indicates that the device is physically located on the front of the phone
  * * `"external"`: The camera device is an external camera, and has no fixed facing relative to the phone. (e.g. USB or Continuity Cameras)
  */
-export type CameraPosition = WithDefault<'front' | 'back' | 'external', 'front'>
+export type CameraPosition = 'front' | 'back' | 'external'
 
 /**
  * Indentifiers for a physical camera (one that actually exists on the back/front of the device)
@@ -23,8 +22,7 @@ export type CameraPosition = WithDefault<'front' | 'back' | 'external', 'front'>
  * * `"wide-angle-camera"` + `"telephoto-camera"` = **dual camera**.
  * * `"ultra-wide-angle-camera"` + `"wide-angle-camera"` + `"telephoto-camera"` = **triple camera**.
  */
-
-export type PhysicalCameraDeviceType = WithDefault<'ultra-wide-angle-camera' | 'wide-angle-camera' | 'telephoto-camera', 'ultra-wide-angle-camera'>
+export type PhysicalCameraDeviceType = 'ultra-wide-angle-camera' | 'wide-angle-camera' | 'telephoto-camera'
 
 /**
  * Indicates a format's autofocus system.
@@ -33,7 +31,7 @@ export type PhysicalCameraDeviceType = WithDefault<'ultra-wide-angle-camera' | '
  * * `"contrast-detection"`: Indicates that autofocus is achieved by contrast detection. Contrast detection performs a focus scan to find the optimal position
  * * `"phase-detection"`: Indicates that autofocus is achieved by phase detection. Phase detection has the ability to achieve focus in many cases without a focus scan. Phase detection autofocus is typically less visually intrusive than contrast detection autofocus
  */
-export type AutoFocusSystem = WithDefault<'contrast-detection' | 'phase-detection' | 'none', 'contrast-detection'>
+export type AutoFocusSystem = 'contrast-detection' | 'phase-detection' | 'none'
 
 /**
  * Indicates a format's supported video stabilization mode. Enabling video stabilization may introduce additional latency into the video capture pipeline.
@@ -44,7 +42,8 @@ export type AutoFocusSystem = WithDefault<'contrast-detection' | 'phase-detectio
  * * `"cinematic-extended"`: Extended software- and hardware-based stabilization that aggressively crops and transforms the video to apply a smooth cinematic stabilization.
  * * `"auto"`: Indicates that the most appropriate video stabilization mode for the device and format should be chosen automatically
  */
-export type VideoStabilizationMode = WithDefault<'off' | 'standard' | 'cinematic' | 'cinematic-extended' | 'auto', 'off'>
+export type VideoStabilizationMode = 'off' | 'standard' | 'cinematic' | 'cinematic-extended' | 'auto'
+
 /**
  * A Camera Device's stream-configuration format.
  *
@@ -58,31 +57,31 @@ export interface CameraDeviceFormat {
   /**
    * The height of the highest resolution a still image (photo) can be produced in
    */
-  photoHeight: Int32
+  photoHeight: number
   /**
    * The width of the highest resolution a still image (photo) can be produced in
    */
-  photoWidth: Int32
+  photoWidth: number
   /**
    * The video resolutions's height
    */
-  videoHeight: Int32
+  videoHeight: number
   /**
    * The video resolution's width
    */
-  videoWidth: Int32
+  videoWidth: number
   /**
    * Maximum supported ISO value
    */
-  maxISO: Int32
+  maxISO: number
   /**
    * Minimum supported ISO value
    */
-  minISO: Int32
+  minISO: number
   /**
    * The video field of view in degrees
    */
-  fieldOfView: Int32
+  fieldOfView: number
   /**
    * Specifies whether this format supports HDR mode for video capture
    */
@@ -98,11 +97,11 @@ export interface CameraDeviceFormat {
   /**
    * The minum frame rate this Format needs to run at. High resolution formats often run at lower frame rates.
    */
-  minFps: Int32
+  minFps: number
   /**
    * The maximum frame rate this Format is able to run at. High resolution formats often run at lower frame rates.
    */
-  maxFps: Int32
+  maxFps: number
   /**
    * Specifies this format's auto focus system.
    */
@@ -116,8 +115,7 @@ export interface CameraDeviceFormat {
 /**
  * Represents a camera device discovered by the {@linkcode Camera.getAvailableCameraDevices | Camera.getAvailableCameraDevices()} function
  */
-
-export type CameraDevice = Readonly<{
+export interface CameraDevice {
   /**
    * The native ID of the camera device instance.
    */
@@ -156,7 +154,7 @@ export type CameraDevice = Readonly<{
   /**
    * The minimum distance this device can properly focus to (in centimeters/cm) or `0` if unknown.
    */
-  minFocusDistance: Int32
+  minFocusDistance: number
   /**
    * A property indicating whether the device is a virtual multi-camera consisting of multiple combined physical cameras.
    *
@@ -168,11 +166,11 @@ export type CameraDevice = Readonly<{
   /**
    * Minimum available zoom factor (e.g. `1`)
    */
-  minZoom: Float
+  minZoom: number
   /**
    * Maximum available zoom factor (e.g. `128`)
    */
-  maxZoom: Float
+  maxZoom: number
   /**
    * The zoom factor where the camera is "neutral".
    *
@@ -188,15 +186,15 @@ export type CameraDevice = Readonly<{
    *   zoom: zoom.value
    * }))
    */
-  neutralZoom: Float
+  neutralZoom: number
   /**
    * The minimum Exposure-Bias value this format supports. When setting the `exposure` to this value, the image is almost completely dark (under-exposed).
    */
-  minExposure: Float
+  minExposure: number
   /**
    * The maximum Exposure-Bias value this format supports. When setting the `exposure` to this value, the image is almost completely bright (over-exposed).
    */
-  maxExposure: Float
+  maxExposure: number
   /**
    * All available formats for this camera device. Use this to find the best format for your use case and set it to the Camera's {@linkcode CameraProps.format | Camera's .format} property.
    *
@@ -222,10 +220,10 @@ export type CameraDevice = Readonly<{
    * - On Android, some older devices are running at a `legacy` or `limited` level which means they are running in a backwards compatible mode.
    * - On iOS, all devices are `full`.
    */
-  hardwareLevel:  WithDefault<'legacy' | 'limited' | 'full', 'legacy'>
+  hardwareLevel: 'legacy' | 'limited' | 'full'
   /**
    * Represents the sensor's orientation relative to the phone.
    * For most phones this will be landscape, as Camera sensors are usually always rotated by 90 degrees (i.e. width and height are flipped).
    */
   sensorOrientation: Orientation
-}>
+}

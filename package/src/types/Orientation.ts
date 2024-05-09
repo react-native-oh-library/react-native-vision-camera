@@ -1,3 +1,5 @@
+import { WithDefault } from "react-native/Libraries/Types/CodegenTypes";
+
 /**
  * Represents Orientation. Depending on the context, this might be a sensor
  * orientation (relative to the phone's orentation), or view orientation.
@@ -7,4 +9,4 @@
  * - `portrait-upside-down`: **180°** (home-button at the top)
  * - `landscape-right`: **270°** (home-button on the right)
  */
-export type Orientation = 'portrait' | 'portrait-upside-down' | 'landscape-left' | 'landscape-right'
+export type Orientation = WithDefault<'portrait' | 'portrait-upside-down' | 'landscape-left' | 'landscape-right', 'portrait'>
