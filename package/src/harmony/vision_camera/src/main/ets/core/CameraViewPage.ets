@@ -1,22 +1,24 @@
-import camera from '@ohos.multimedia.camera';
 import { BusinessError } from '@ohos.base';
-import common from '@ohos.app.ability.common';
-import grantPermission from '../utils/PermissionUtils';
 import Logger from '../utils/Logger';
+import grantPermission from '../utils/PermissionUtils';
+import CameraSession from '../service/CameraSession';
+import { scanBarcode, scanCore } from '@kit.ScanKit';
 
-const TAG: string = 'CameraViewPage:';
+const TAG: string = 'CameraViewPage:'
 
 @Component
 export default struct CameraViewPage {
-  mXComponentController: XComponentController = new XComponentController();
-  surfaceId: string = '';
+  private mXComponentController: XComponentController = new XComponentController();
+  private surfaceId: string = '';
   context: Context = getContext(this);
-  cameraInput?: camera.CameraInput;
-  photoSession?: camera.PhotoSession;
+  private cameraSession: CameraSession = new CameraSession(this.context);
+  @Prop @Watch("pageStatusChange") isPageHide: boolean = false;
+  @State isInit: boolean = false;
+  // rect: SurfaceRect = { surfaceWidth: 1080, surfaceHeight: 1920 };
   rect: SurfaceRect = { surfaceWidth: 1920, surfaceHeight: 1080 };
 
   build() {
-    Flex() {
+    Column() {
       XComponent({
         id: 'CameraViewComponent',
         type: 'surface',
@@ -28,94 +30,66 @@ export default struct CameraViewPage {
         })
         .width('1920px')
         .height('1080px')
+      Row() {
+        Button('拍照')
+          .height(40)
+          .width(120)
+          .onClick(() => {
+            this.cameraSession.taskPhone();
+          })
+        Button('扫码')
+          .height(40)
+          .width(120)
+          .onClick(() => {
+            let options: scanBarcode.ScanOptions = {
+              scanTypes: [scanCore.ScanType.ALL],
+              enableMultiMode: true,
+              enableAlbum: true
+            };
+            console.log(TAG, '[Scan].Promise scan options: ' + JSON.stringify(options))
+            try {
+              scanBarcode.startScanForResult(getContext(this), options).then((result: scanBarcode.ScanResult) => {
+                // 收到扫码结果后返回
+                console.log(TAG, '[Scan].Promise scan result: ' + JSON.stringify(result));
+              }).catch((error: BusinessError) => {
+                console.log(TAG, '[Scan].Promise error: ' + JSON.stringify(error));
+              });
+            } catch (error) {
+              console.log(TAG, '[Scan].failReason: ' + JSON.stringify(error));
+            }
+            console.log(TAG, '[Scan].end: ' + JSON.stringify(options))
+          })
+      }
     }
   }
 
-  async aboutToAppear() {
-    await grantPermission().then(res => {
-      Logger.info(TAG, `权限申请成功 ${JSON.stringify(res)}`);
+  aboutToAppear() {
+    grantPermission().then(res => {
+      Logger.info(TAG, `权限申请成功  ${JSON.stringify(res)}`);
+      this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
+      Logger.info(TAG, `aboutToAppear surfaceId:  ${this.surfaceId}`);
+      this.cameraSession.initCamera(this.surfaceId).then(() => {
+        this.isInit = true;
+      })
+
     }).catch((rej: BusinessError) => {
-      Logger.info(TAG, `权限申请失败 ${JSON.stringify(rej)}`);
+      Logger.info(TAG, `权限申请失败  ${JSON.stringify(rej)}`);
     })
-    let cameraManager: camera.CameraManager = camera.getCameraManager(this.context);
-    let cameraDevices: Array<camera.CameraDevice> = cameraManager.getSupportedCameras();
-    let outputCapability: camera.CameraOutputCapability =
-      this.getSupportedOutputCapability(cameraDevices[0], cameraManager);
-    let previewOutput = this.getPreviewOutput(cameraManager, outputCapability, this.surfaceId);
-    this.getCameraInput(cameraDevices[0], cameraManager);
-    this.getPhotoSession(cameraManager);
-    if (previewOutput != undefined) {
-      this.startPreviewOutput(cameraManager, previewOutput);
-    }
   }
 
-  async aboutToDisappear(): Promise<void> {
-    if (this.photoSession) {
-      await this.photoSession.release()
-    }
-    if (this.cameraInput) {
-      this.cameraInput.close()
-    }
+  aboutToDisappear() {
+    Logger.info(TAG, 'aboutToDisappear begin');
+    this.cameraSession.cameraRelease();
   }
 
-  getSupportedOutputCapability(cameraDevice: camera.CameraDevice,
-    cameraManager: camera.CameraManager): camera.CameraOutputCapability {
-    let cameraOutputCapability: camera.CameraOutputCapability =
-      cameraManager.getSupportedOutputCapability(cameraDevice, camera.SceneMode.NORMAL_PHOTO);
-    return cameraOutputCapability;
-  }
-
-  getPreviewOutput(cameraManager: camera.CameraManager, cameraOutputCapability: camera.CameraOutputCapability,
-    surfaceId: string): camera.PreviewOutput | undefined {
-    let previewProfilesArray: Array<camera.Profile> = cameraOutputCapability.previewProfiles;
-    let previewOutput: camera.PreviewOutput | undefined = undefined;
-    try {
-      previewOutput = cameraManager.createPreviewOutput(previewProfilesArray[0], surfaceId);
-    } catch (error) {
-      let err = error as BusinessError;
-      console.error("Failed to create the PreviewOutput instance. error code: " + err.code);
-    }
-    return previewOutput;
-  }
-
-  getCameraInput(camera: camera.CameraDevice, cameraManager: camera.CameraManager) {
-    this.cameraInput = cameraManager.createCameraInput(camera);
-    if (this.cameraInput === undefined) {
-      console.error('cameraInput is undefined');
-    }
-  }
-
-  getPhotoSession(cameraManager: camera.CameraManager) {
-    this.photoSession = cameraManager.createSession(camera.SceneMode.NORMAL_PHOTO) as camera.PhotoSession;
-    if (this.photoSession === undefined) {
-      console.error('session is undefined');
-    }
-  }
-
-  async startPreviewOutput(cameraManager: camera.CameraManager, previewOutput: camera.PreviewOutput): Promise<void> {
-    let cameraArray: Array<camera.CameraDevice> = [];
-    cameraArray = cameraManager.getSupportedCameras();
-    if (cameraArray.length == 0) {
-      console.error('no camera.');
-      return;
-    }
-    // 获取支持的模式类型
-    let sceneModes: Array<camera.SceneMode> = cameraManager.getSupportedSceneModes(cameraArray[0]);
-    let isSupportPhotoMode: boolean = sceneModes.indexOf(camera.SceneMode.NORMAL_PHOTO) >= 0;
-    if (!isSupportPhotoMode) {
-      console.error('photo mode not support');
-      return;
-    }
-
-    // 打开相机
-    if (this.cameraInput && this.photoSession) {
-      await this.cameraInput.open();
-      this.photoSession.beginConfig();
-      this.photoSession.addInput(this.cameraInput);
-      this.photoSession.addOutput(previewOutput);
-      await this.photoSession.commitConfig();
-      await this.photoSession.start();
+  pageStatusChange() {
+    Logger.info(TAG, `pageStatusChange isPageHide: ${this.isPageHide}`);
+    if (this.isPageHide) {
+      this.cameraSession.cameraRelease();
+    } else {
+      if (this.isInit) {
+        this.cameraSession.initCamera(this.surfaceId)
+      }
     }
   }
 }
-
