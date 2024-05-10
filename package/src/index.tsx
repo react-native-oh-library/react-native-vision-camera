@@ -1,10 +1,10 @@
 
-import { Image, View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './RTNVisionCameraNativeComponent';
 import RTNVisionCamera from './RTNVisionCameraNativeComponent';
-import type { Spec } from "./NativeVisionCamera";
 import RNCCameraView from "./NativeVisionCamera";
+
 
 
 function VisionCameraBase({
@@ -64,13 +64,15 @@ const CameraComponent: React.ComponentType<NativeVisionCameraProps> = forwardRef
 CameraComponent.displayName = 'Camera'
 
 export interface CameraStaticProperties {
-    mockProp: string
-    mockFun: () => Promise<void>
 }
 
-const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties = CameraComponent as any
+interface CameraMethods {
+    takePhoto: () => void;
+}
 
-Camera.mockProp = 'mockProp';
-Camera.mockFun = () => RNCCameraView.mockFun();
+
+const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties & CameraMethods = CameraComponent as any
+
+Camera.takePhoto = () => RNCCameraView.takePhoto();
 
 export default Camera;

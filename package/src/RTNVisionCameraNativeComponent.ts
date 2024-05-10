@@ -65,7 +65,7 @@ type CodeType =
 
 interface CodeScanner {
   codeTypes?: WithDefault<ReadonlyArray<CodeType>, null>;
-  onCodeScanned?: BubblingEventHandler<Readonly<{}>>;
+  // onCodeScanned?: BubblingEventHandler<Readonly<{}>>;
   regionOfInterest?: {
     x: Int32
     y: Int32
