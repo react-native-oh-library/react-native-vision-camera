@@ -4,8 +4,12 @@ import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './RTNVisionCameraNativeComponent';
 import RTNVisionCamera from './RTNVisionCameraNativeComponent';
 import RNCCameraView from "./NativeVisionCamera";
-import { PhotoFile } from "./types/PhotoFile";
+// import { PhotoFile } from "./types/PhotoFile";
 
+interface PhotoFile {
+    width: number
+    height: number
+}
 
 
 function VisionCameraBase({

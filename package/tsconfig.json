@@ -24,13 +24,13 @@
     "src",
     ".eslintrc.js",
     "babel.config.js",
-    "react-native.config.js", "index.ts", "index.d.ts",
+    "react-native.config.js", "index.ts", "index.d.ts", "harmony", "vision_camera",
   ],
   "exclude": [
     "node_modules",
     "lib",
     "docs",
     "example",
-    "src/harmony"
+    "harmony"
   ]
 }
