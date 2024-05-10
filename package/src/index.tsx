@@ -4,6 +4,7 @@ import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './RTNVisionCameraNativeComponent';
 import RTNVisionCamera from './RTNVisionCameraNativeComponent';
 import RNCCameraView from "./NativeVisionCamera";
+import { PhotoFile } from "./types/PhotoFile";
 
 
 
@@ -67,12 +68,14 @@ export interface CameraStaticProperties {
 }
 
 interface CameraMethods {
-    takePhoto: () => void;
+    takePhoto: () => Promise<PhotoFile>;
+    focus: () => void;
 }
 
 
 const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties & CameraMethods = CameraComponent as any
 
 Camera.takePhoto = () => RNCCameraView.takePhoto();
+Camera.focus = () => RNCCameraView.focus();
 
 export default Camera;
