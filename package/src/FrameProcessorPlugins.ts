@@ -1,6 +1,6 @@
 import type { Frame, FrameInternal } from './types/Frame'
 import { CameraRuntimeError } from './CameraError'
-import { CameraModule } from './NativeCameraModule_bak'
+import { CameraModule } from '../src_bak/NativeCameraModule_bak'
 import { assertJSIAvailable } from './JSIHelper'
 import { WorkletsProxy } from './dependencies/WorkletsProxy'
 import type { IWorkletContext } from 'react-native-worklets-core'
