@@ -1,6 +1,6 @@
 import { BusinessError } from '@ohos.base';
-import Logger from './utils/Logger';
-import grantPermission from './utils/PermissionUtils';
+import Logger from '../utils/Logger';
+import grantPermission from '../utils/PermissionUtils';
 import ScanSession from '../service/ScanSession';
 
 const TAG: string = 'ScanViewPage:'
