@@ -65,7 +65,7 @@ type CodeType =
 
 interface CodeScanner {
   codeTypes?: WithDefault<ReadonlyArray<CodeType>, null>;
-  // onCodeScanned: BubblingEventHandler<Readonly<{}>>;
+  onCodeScanned?: BubblingEventHandler<Readonly<{}>>;
   regionOfInterest?: {
     x: Int32
     y: Int32
@@ -74,7 +74,7 @@ interface CodeScanner {
   }
 }
 
-export interface NativeProps extends ViewProps {
+export interface NativeVisionCameraProps extends ViewProps {
   codeScanner?: CodeScanner;
   fps?: WithDefault<Int32, 30>;
   isActive: boolean;
@@ -92,7 +92,7 @@ export interface NativeProps extends ViewProps {
   onError?: BubblingEventHandler<Readonly<{}>>;
 }
 
-export default codegenNativeComponent<NativeProps>(
+export default codegenNativeComponent<NativeVisionCameraProps>(
   "RTNVisionCamera"
-) as HostComponent<NativeProps>;
+) as HostComponent<NativeVisionCameraProps>;
 

@@ -1,7 +1,7 @@
 import { BusinessError } from '@ohos.base';
-import Logger from '../utils/Logger';
-import grantPermission from '../utils/PermissionUtils';
-import CameraSession from '../service/CameraSession';
+import Logger from './utils/Logger';
+import grantPermission from './utils/PermissionUtils';
+import CameraSession from './service/CameraSession';
 import { scanBarcode, scanCore } from '@kit.ScanKit';
 
 const TAG: string = 'CameraViewPage:'
