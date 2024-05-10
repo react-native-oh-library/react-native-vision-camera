@@ -1,5 +1,5 @@
-import type { Orientation } from '../../src_bak/types/Orientation'
-import type { TemporaryFile } from '../../src_bak/types/TemporaryFile'
+import type { Orientation } from '../../src/types/Orientation'
+import type { TemporaryFile } from '../../src/types/TemporaryFile'
 
 export interface TakePhotoOptions {
   /**

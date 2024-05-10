@@ -4,12 +4,37 @@ import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './RTNVisionCameraNativeComponent';
 import RTNVisionCamera from './RTNVisionCameraNativeComponent';
 import RNCCameraView from "./NativeVisionCamera";
-// import { PhotoFile } from "./types/PhotoFile";
+import { PhotoFile } from "./types/PhotoFile";
 
-interface PhotoFile {
-    width: number
-    height: number
-}
+export * from './Camera'
+export * from './CameraError'
+export * from './FrameProcessorPlugins'
+export * from './NativeVisionCamera'
+export * from './RTNVisionCameraNativeComponent'
+
+export * from './types/CameraDevice'
+export * from './types/CameraProps'
+export * from './types/Frame'
+export * from './types/Orientation'
+export * from './types/PhotoFile'
+export * from './types/Snapshot'
+export * from './types/PixelFormat'
+export * from './types/Point'
+export * from './types/VideoFile'
+export * from './types/CodeScanner'
+
+export * from './devices/getCameraFormat'
+export * from './devices/getCameraDevice'
+export * from './devices/Templates'
+
+export * from './hooks/useCameraDevice'
+export * from './hooks/useCameraDevices'
+export * from './hooks/useCameraFormat'
+export * from './hooks/useCameraPermission'
+export * from './hooks/useCodeScanner'
+export * from './hooks/useFrameProcessor'
+
+export * from './skia/useSkiaFrameProcessor'
 
 
 function VisionCameraBase({
