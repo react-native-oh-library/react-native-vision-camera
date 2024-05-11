@@ -100,6 +100,13 @@ If you're integrating VisionCamera in a production app, consider [funding this p
 
 在tester目录下安装tgz包 `npm i @react-native-oh-tpl/react-native-vision-camera@file:./react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz`
 
+在tester目录下运行codegen
+
+```shell
+npm run codegen
+```
+
+
 `tester/harmony/entry/oh-package.json5` 添加以下内容
 
 ```json
