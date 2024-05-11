@@ -11,18 +11,18 @@ import { VisionCameraModule } from './VisionCameraModule';
 
 class VisionCameraModulesFactory extends TurboModulesFactory {
   createTurboModule(name: string): TurboModule | null {
-    if (name === TM.RTNVisionCamera.NAME) {
+    if (name === TM.VisionCameraModule.NAME) {
       return new VisionCameraModule(this.ctx);
     }
     return null;
   }
 
   hasTurboModule(name: string): boolean {
-    return name === TM.RTNVisionCamera.NAME;
+    return name === TM.VisionCameraModule.NAME;
   }
 }
 
-export class VisionCameraPackage extends RNPackage {
+export class VisionCameraModulePackage extends RNPackage {
   createTurboModulesFactory(ctx: TurboModuleContext): TurboModulesFactory {
     return new VisionCameraModulesFactory(ctx);
   }

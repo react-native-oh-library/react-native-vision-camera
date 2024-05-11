@@ -4,7 +4,11 @@ import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './NativeVisionCameraView';
 import RTNVisionCamera from './NativeVisionCameraView';
 import VisionCameraModule from "./NativeVisionCameraModule";
-import { PhotoFile } from "./types/PhotoFile";
+
+export interface PhotoFile {
+    width: number
+    height: number
+}
 
 function VisionCameraViewBase({
     style,

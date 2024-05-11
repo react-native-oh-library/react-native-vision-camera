@@ -1,2 +1,2 @@
 export * from "./ts";
-export * from "./src/main/ets/RTNVisionCamera";
+export * from "./src/main/ets/VisionCameraView";

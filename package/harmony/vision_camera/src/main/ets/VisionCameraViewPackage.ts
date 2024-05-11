@@ -5,10 +5,10 @@ import type {
 } from '@rnoh/react-native-openharmony/ts';
 import { RNC } from "@rnoh/react-native-openharmony/generated/ts"
 
-export class RTNVisionCameraPackage extends RNPackage {
+export class VisionCameraViewPackage extends RNPackage {
   createDescriptorWrapperFactoryByDescriptorType(ctx: DescriptorWrapperFactoryByDescriptorTypeCtx): DescriptorWrapperFactoryByDescriptorType {
     return {
-      [RNC.RTNVisionCamera.NAME]: (ctx) => new RNC.RTNVisionCamera.DescriptorWrapper(ctx.descriptor)
+      [RNC.VisionCameraView.NAME]: (ctx) => new RNC.VisionCameraView.DescriptorWrapper(ctx.descriptor)
     }
   }
 }
