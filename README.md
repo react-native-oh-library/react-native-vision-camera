@@ -93,3 +93,53 @@ If you're integrating VisionCamera in a production app, consider [funding this p
 * 💬 [**Join the Margelo Community Discord**](https://discord.gg/6CSHz2qAvA) for chatting about VisionCamera
 * 💖 [**Sponsor me on GitHub**](https://github.com/sponsors/mrousavy) to support my work
 * 🍪 [**Buy me a Ko-Fi**](https://ko-fi.com/mrousavy) to support my work
+
+### harmony使用说明
+
+点击链接下载 [react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz](https://github.com/react-native-oh-library/react-native-vision-camera/blob/dev/package/react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz) 包，移动到tester目录下
+
+在tester目录下安装tgz包 `npm i @react-native-oh-tpl/react-native-vision-camera@file:./react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz`
+
+`tester/harmony/entry/oh-package.json5` 添加以下内容
+
+```json
+{
+  "dependencies": {
+    "@react-native-oh-tpl/react-native-vision-camera": "file:../../node_modules/@react-native-oh-tpl/react-native-vision-camera/harmony/vision_camera.har"
+  }
+}
+```
+
+`tester/harmony/entry/ets/pages/Index.ets `添加以下内容
+
+```tsx
+import { VisionCameraView } from "@react-native-oh-tpl/react-native-vision-camera";
+
+@Builder
+export function buildCustomRNComponent(ctx: ComponentBuilderContext) {
+  Stack(){
+    if (ctx.componentName === VisionCameraView.NAME) {
+      VisionCameraView({
+        ctx: ctx.rnComponentContext,
+        tag: ctx.tag,
+      })
+    }
+  }
+}
+```
+
+`tester/harmony/entry/ets/RNPackagesFactory.ts `添加以下内容
+
+```ts
+import type { RNPackageContext, RNPackage } from 'rnoh/ts';
+import { VisionCameraViewPackage } from "@react-native-oh-tpl/react-native-vision-camera/ts";
+
+export function createRNPackages(ctx: RNPackageContext): RNPackage[] {
+  return [
+    new VisionCameraViewPackage(ctx),
+  ];
+}
+```
+
+
+
