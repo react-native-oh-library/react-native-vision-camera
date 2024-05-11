@@ -93,6 +93,6 @@ export interface NativeVisionCameraProps extends ViewProps {
 }
 
 export default codegenNativeComponent<NativeVisionCameraProps>(
-  "RTNVisionCamera"
+  "VisionCameraView"
 ) as HostComponent<NativeVisionCameraProps>;
 

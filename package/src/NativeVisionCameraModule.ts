@@ -6,4 +6,4 @@ export interface Spec extends TurboModule {
     focus: () => Promise<void>;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('RNCVisionCamera');
+export default TurboModuleRegistry.getEnforcing<Spec>('VisionCameraModule');

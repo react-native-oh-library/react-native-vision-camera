@@ -1,43 +1,12 @@
 
 import { View } from "react-native";
 import React, { forwardRef, memo } from "react";
-import type { NativeVisionCameraProps } from './RTNVisionCameraNativeComponent';
-import RTNVisionCamera from './RTNVisionCameraNativeComponent';
-import RNCCameraView from "./NativeVisionCamera";
+import type { NativeVisionCameraProps } from './NativeVisionCameraView';
+import RTNVisionCamera from './NativeVisionCameraView';
+import VisionCameraModule from "./NativeVisionCameraModule";
 import { PhotoFile } from "./types/PhotoFile";
 
-// export * from './Camera'
-// export * from './CameraError'
-// export * from './FrameProcessorPlugins'
-// export * from './NativeVisionCamera'
-// export * from './RTNVisionCameraNativeComponent'
-
-// export * from './types/CameraDevice'
-// export * from './types/CameraProps'
-// export * from './types/Frame'
-// export * from './types/Orientation'
-// export * from './types/PhotoFile'
-// export * from './types/Snapshot'
-// export * from './types/PixelFormat'
-// export * from './types/Point'
-// export * from './types/VideoFile'
-// export * from './types/CodeScanner'
-
-// export * from './devices/getCameraFormat'
-// export * from './devices/getCameraDevice'
-// export * from './devices/Templates'
-
-// export * from './hooks/useCameraDevice'
-// export * from './hooks/useCameraDevices'
-// export * from './hooks/useCameraFormat'
-// export * from './hooks/useCameraPermission'
-// export * from './hooks/useCodeScanner'
-// export * from './hooks/useFrameProcessor'
-
-// export * from './skia/useSkiaFrameProcessor'
-
-
-function VisionCameraBase({
+function VisionCameraViewBase({
     style,
     children,
     forwardedRef,
@@ -83,7 +52,7 @@ function VisionCameraBase({
     )
 }
 
-const CameraMemo = memo(VisionCameraBase)
+const CameraMemo = memo(VisionCameraViewBase)
 
 const CameraComponent: React.ComponentType<NativeVisionCameraProps> = forwardRef(
     (props: NativeVisionCameraProps, ref: React.Ref<any>) => (
@@ -102,9 +71,9 @@ interface CameraMethods {
 }
 
 
-const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties & CameraMethods = CameraComponent as any
+export const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties & CameraMethods = CameraComponent as any
 
-Camera.takePhoto = () => RNCCameraView.takePhoto();
-Camera.focus = () => RNCCameraView.focus();
+Camera.takePhoto = () => VisionCameraModule.takePhoto();
+Camera.focus = () => VisionCameraModule.focus();
 
 export default Camera;
