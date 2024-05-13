@@ -1,5 +1,6 @@
 import CameraViewPage from './CameraViewPage';
 import ScanViewPage from './ScanViewPage';
+
 const TAG: string = 'CameraViewIndex:'
 
 
@@ -14,11 +15,11 @@ struct Index {
     Column() {
       Stack({ alignContent: Alignment.Bottom }) {
         if (this.codeScan) {
-          ScanViewPage({isPageHide: this.isPageHide})
+          ScanViewPage({ isPageHide: this.isPageHide })
             .height('100%')
             .width('100%')
-        }else {
-          CameraViewPage({isPageHide: this.isPageHide})
+        } else {
+          CameraViewPage({ isPageHide: this.isPageHide })
             .height('100%')
             .width('100%')
         }

@@ -3,6 +3,7 @@ import Logger from '../utils/Logger';
 import grantPermission from '../utils/PermissionUtils';
 import CameraSession from '../service/CameraSession';
 import { scanBarcode, scanCore } from '@kit.ScanKit';
+import { Point } from '../core/CameraConfig';
 
 const TAG: string = 'CameraViewPage:'
 
@@ -19,26 +20,33 @@ export default struct CameraViewPage {
 
   build() {
     Column() {
-      XComponent({
-        id: 'CameraViewComponent',
-        type: 'surface',
-        controller: this.mXComponentController
-      })
-        .onLoad(() => {
-          this.mXComponentController.setXComponentSurfaceRect(this.rect);
-          this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
+      Column() {
+        XComponent({
+          id: 'CameraViewComponent',
+          type: 'surface',
+          controller: this.mXComponentController
         })
-        .width('1920px')
-        .height('1080px')
+          .onLoad(() => {
+            this.mXComponentController.setXComponentSurfaceRect(this.cameraSession.rect);
+            this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
+          })
+          .width('100%')
+          .height('100%')
+      }.onClick((clickEvent) => {
+        this.cameraSession.focus({ x: clickEvent.x, y: clickEvent.y } as Point)
+      })
+      .width('100%')
+      .height('92%')
+
       Row() {
         Button('拍照')
-          .height(40)
+          .height('100%')
           .width(120)
           .onClick(() => {
-            this.cameraSession.taskPhone();
+            this.cameraSession.taskPhoto();
           })
         Button('扫码')
-          .height(40)
+          .height('100%')
           .width(120)
           .onClick(() => {
             let options: scanBarcode.ScanOptions = {
@@ -60,7 +68,12 @@ export default struct CameraViewPage {
             console.log(TAG, '[Scan].end: ' + JSON.stringify(options))
           })
       }
+      .justifyContent(FlexAlign.SpaceAround)
+      .width('100%')
+      .height('8%')
     }
+    .width('100%')
+    .height('100%')
   }
 
   aboutToAppear() {
@@ -91,5 +104,12 @@ export default struct CameraViewPage {
         this.cameraSession.initCamera(this.surfaceId)
       }
     }
+  }
+
+  /**
+   * 拍照
+   */
+  taskPhone() {
+    this.cameraSession.taskPhoto()
   }
 }

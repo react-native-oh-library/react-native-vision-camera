@@ -1,11 +1,14 @@
 import camera from '@ohos.multimedia.camera';
 import Logger from '../utils/Logger';
+import { Point } from '../core/CameraConfig';
 import { media } from '@kit.MediaKit';
 import { Context } from '@kit.AbilityKit';
 import image from '@ohos.multimedia.image';
 import { BusinessError } from '@ohos.base';
 import fs from '@ohos.file.fs';
+
 import PhotoAccessHelper from '@ohos.file.photoAccessHelper';
+import { display } from '@kit.ArkUI';
 
 const TAG: string = 'CameraSession:'
 
@@ -16,8 +19,12 @@ export default class CameraSession {
   private cameraInput?: camera.CameraInput;
   private mediaModel: camera.SceneMode = camera.SceneMode.NORMAL_PHOTO;
   private capability?: camera.CameraOutputCapability;
+  private localDisplay?: display.Display;
+  rect = {
+    surfaceWidth: 1216, surfaceHeight: 2224
+  };
 
-  photoSession?: camera.PhotoSession;
+  private photoSession?: camera.PhotoSession;
 
   private previewOutput: camera.PreviewOutput = undefined;
   private photoOutPut?: camera.PhotoOutput;
@@ -26,6 +33,7 @@ export default class CameraSession {
 
   private photoProfile?: camera.Profile;
 
+  private videoSession?: camera.PhotoSession;
   // private fileAsset?: mediaLibrary.FileAsset;
   // private avRecorder: media.AVRecorder;
   // private receiver: image.ImageReceiver;
@@ -57,6 +65,15 @@ export default class CameraSession {
 
   constructor(context: Context) {
     this.context = context;
+    this.localDisplay = display.getDefaultDisplaySync();
+    if(this.localDisplay){
+      Logger.info(TAG, `localDisplay: ${JSON.stringify(this.localDisplay)}`);
+      let previewSize = {
+        surfaceWidth: this.localDisplay.width, surfaceHeight: this.localDisplay.height-126
+      }
+      // this.rect = previewSize;
+    }
+
     try {
       Logger.info(TAG, 'getCameraManager try begin');
       this.cameraManager = camera.getCameraManager(context);
@@ -72,34 +89,31 @@ export default class CameraSession {
    */
   async initCamera(surfaceId: string): Promise<void> {
     Logger.info(TAG, `initCamera surfaceId:${surfaceId}`);
-    // await this.cameraRelease();
-    Logger.info(TAG, 'getCameraManager begin');
-
-    Logger.info(TAG, 'getCameraManager end');
-    Logger.info(TAG, `getCameraManager ${JSON.stringify(this.cameraManager)}`);
-    this.camerasArray = this.cameraManager?.getSupportedCameras();
-    if (!this.camerasArray) {
-      Logger.error(TAG, 'cannot get cameras');
-      return;
-    }
-    Logger.info(TAG, `get cameras ${this.camerasArray.length}`);
     if (!this.cameraManager) {
       Logger.error(TAG, 'initCamera check cameraManager is empty');
       return;
     }
+    this.camerasArray = this.getAvailableCameraDevices();
     let mCamera = this.camerasArray[0];
+    Logger.info(TAG, `initCamera cameraDevice: ${JSON.stringify(mCamera)}`);
     this.cameraInput = this.cameraManager.createCameraInput(mCamera);
     this.cameraInput.open();
-    Logger.info(TAG, 'createCameraInput');
+    Logger.info(TAG, 'initCamera createCameraInput');
     this.capability = this.cameraManager.getSupportedOutputCapability(mCamera, this.mediaModel);
     let previewProfile = this.capability.previewProfiles[0];
     this.previewOutput = this.cameraManager.createPreviewOutput(previewProfile, surfaceId);
-    Logger.info(TAG, 'createPreviewOutput');
+    Logger.info(TAG, 'initCamera createPreviewOutput');
 
-    this.photoProfile = this.capability.photoProfiles[0];
+    this.photoProfile = this.capability.photoProfiles[this.capability.photoProfiles.length-1];
+    Logger.info(TAG, `initCamera createCaptureSession: photoProfile,size: ${JSON.stringify(this.photoProfile.size)}`);
     this.photoOutPut = this.cameraManager.createPhotoOutput(this.photoProfile);
     this.cameraSession = this.cameraManager.createSession(this.mediaModel);
-    Logger.info(TAG, 'createCaptureSession');
+    if(this.mediaModel === camera.SceneMode.NORMAL_PHOTO){
+      this.photoSession = this.cameraSession as camera.PhotoSession;
+    }else{
+      this.videoSession = this.cameraSession as camera.PhotoSession;
+    }
+    Logger.info(TAG, 'initCamera cameraSession');
     this.cameraSession.beginConfig();
     Logger.info(TAG, 'beginConfig');
     this.cameraSession.addInput(this.cameraInput);
@@ -108,6 +122,7 @@ export default class CameraSession {
     await this.cameraSession.commitConfig();
     await this.cameraSession.start();
     this.setPhotoOutputCb(this.photoOutPut);
+    this.focus(undefined);
     Logger.info(TAG, 'cameraSession start');
   }
 
@@ -164,7 +179,7 @@ export default class CameraSession {
     //设置回调之后，调用photoOutput的capture方法，就会将拍照的buffer回传到回调中
     photoOutput.on('photoAvailable', (errCode: BusinessError, photo: camera.Photo): void => {
       Logger.info(TAG, 'setPhotoOutputCb getPhoto start');
-      console.info(`err: ${JSON.stringify(errCode)}`);
+      Logger.info(`err: ${JSON.stringify(errCode)}`);
       if (errCode || photo === undefined) {
         Logger.error(TAG, 'setPhotoOutputCb getPhoto failed');
         return;
@@ -188,11 +203,76 @@ export default class CameraSession {
     });
   }
 
-  // 参数配置
+  /**
+   * 参数配置
+   */
+  focus(rnPoint: Point) {
+    let status: boolean = false;
+    Logger.info(TAG, `The focus method start`);
+    try {
+      status = this.photoSession.isFocusModeSupported(camera.FocusMode.FOCUS_MODE_AUTO);
+    } catch (error) {
+      // 失败返回错误码error.code并处理
+      let err = error as BusinessError;
+      Logger.error(TAG, `The focus isFocusModeSupported call failed. error code: ${err.code}`);
+      return;
+    }
+    if (status) {
+      Logger.info(TAG, `The focus isFocusModeSupported status: ${status}`);
+      // 指定焦点时设置焦点
+      if (rnPoint) {
+        Logger.info(TAG, `The focus rnPoint: ${JSON.stringify(rnPoint)}`);
+        try {
+          this.photoSession.setFocusMode(camera.FocusMode.FOCUS_MODE_AUTO);
+        } catch (error) {
+          let err = error as BusinessError;
+          Logger.error(TAG, `The setFocusMode call failed. error code: ${err.code}`);
+          return;
+        }
+        let ohPoint = this.convertPoint(rnPoint);
+        Logger.info(TAG, `The focus ohPoint: ${JSON.stringify(ohPoint)}`);
+        try {
+          this.photoSession.setFocusPoint(ohPoint);
+          Logger.info(TAG, `The focus ohPoint success`);
+        } catch (error) {
+          let err = error as BusinessError;
+          Logger.error(TAG, `The setFocusPoint call failed. error code: ${err.code}`);
+        }
+      } else {
+        // 没有指定焦点时设置自动对焦
+        Logger.info(TAG, `The focus setFocusMode: auto`);
+        try {
+          this.photoSession.setFocusMode(camera.FocusMode.FOCUS_MODE_AUTO);
+        } catch (error) {
+          let err = error as BusinessError;
+          Logger.error(TAG, `The setFocusMode call failed. error code: ${err.code}`);
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * 转换为鸿蒙Point坐标
+   * VC坐标系(x,y)-> OH坐标系(x/w,y/h)
+   * @param rnPoint
+   * @returns
+   */
+  convertPoint(rnPoint: Point): Point {
+    let ohPoint: Point = {
+      x: 0, y: 0
+    }
+    if (rnPoint) {
+      ohPoint.x = rnPoint.x / this.rect.surfaceWidth;
+      ohPoint.y = rnPoint.y / this.rect.surfaceHeight;
+    }
+    return ohPoint;
+  }
+
   /**
    * 拍照
    */
-  taskPhone() {
+  taskPhoto() {
     Logger.info(TAG, 'taskPhone to capture the photo ');
     let photoCaptureSetting: camera.PhotoCaptureSetting = {
       quality: camera.QualityLevel.QUALITY_LEVEL_HIGH, // 设置图片质量高
@@ -208,6 +288,19 @@ export default class CameraSession {
     });
   }
 
+  /**
+   * 获取可用设备
+   */
+  getAvailableCameraDevices(): Array<camera.CameraDevice> {
+    Logger.info(TAG, 'getAvailableCameraDevices start');
+    let camerasArray = this.cameraManager?.getSupportedCameras();
+    if (!camerasArray) {
+      Logger.error(TAG, 'getAvailableCameraDevices cannot get cameras');
+      return;
+    }
+    Logger.info(TAG, `getAvailableCameraDevices get cameras ${camerasArray.length}`);
+    return camerasArray;
+  }
   // 开始录像
   // 停止录像
   // 暂停录像

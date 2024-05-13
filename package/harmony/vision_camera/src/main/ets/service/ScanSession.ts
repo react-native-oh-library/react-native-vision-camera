@@ -1,5 +1,5 @@
 import { scanBarcode, scanCore, customScan } from '@kit.ScanKit';
-import Logger from '../utlis/Logger';
+import Logger from '../utils/Logger';
 import { BusinessError } from '@ohos.base';
 import { display, promptAction } from '@kit.ArkUI';
 import {
