@@ -24,7 +24,7 @@
     "src",
     ".eslintrc.js",
     "babel.config.js",
-    "react-native.config.js", "index.ts", "index.d.ts", "harmony", "vision_camera",
+    "react-native.config.js", "index.ts", "index.d.ts", "harmony", "vision_camera", "src_bak/bak/hooks", "src/devices",
   ],
   "exclude": [
     "node_modules",
