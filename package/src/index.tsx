@@ -4,7 +4,10 @@ import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './NativeVisionCameraView';
 import RTNVisionCamera from './NativeVisionCameraView';
 import NativeVisionCameraModule from "./NativeVisionCameraModule";
-// export * from './hooks/useCameraDevice'
+export * from './hooks/useCameraDevice'
+export * from './hooks/useCameraDevices'
+export * from './hooks/useCameraFormat'
+export * from './hooks/useCameraPermission'
 
 export interface PhotoFile {
     width: number
