@@ -1,4 +1,5 @@
-{
+// useCameraDevice('front');
+const device = {
     "formats": [
         {
             "videoStabilizationModes": [
