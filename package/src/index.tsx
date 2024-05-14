@@ -3,7 +3,7 @@ import { View } from "react-native";
 import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './NativeVisionCameraView';
 import RTNVisionCamera from './NativeVisionCameraView';
-import VisionCameraModule from "./NativeVisionCameraModule";
+import NativeVisionCameraModule from "./NativeVisionCameraModule";
 // export * from './hooks/useCameraDevice'
 
 export interface PhotoFile {
@@ -78,7 +78,7 @@ interface CameraMethods {
 
 export const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties & CameraMethods = CameraComponent as any
 
-Camera.takePhoto = () => VisionCameraModule.takePhoto();
-Camera.focus = () => VisionCameraModule.focus();
+Camera.takePhoto = () => NativeVisionCameraModule.takePhoto();
+Camera.focus = () => NativeVisionCameraModule.focus();
 
 export default Camera;
