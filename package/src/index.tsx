@@ -29,6 +29,7 @@ function VisionCameraViewBase({
     exposure,
     zoom,
     audio,
+    video,
     torch,
     onStarted,
     onStopped,
@@ -50,6 +51,7 @@ function VisionCameraViewBase({
                 exposure={exposure}
                 zoom={zoom}
                 audio={audio}
+                video={video}
                 torch={torch}
                 onStarted={onStarted}
                 onStopped={onStopped}

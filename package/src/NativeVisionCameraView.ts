@@ -1,9 +1,9 @@
 import type { ViewProps } from "react-native/Libraries/Components/View/ViewPropTypes";;
 import type { HostComponent } from "react-native";
 import codegenNativeComponent from "react-native/Libraries/Utilities/codegenNativeComponent";
-import { BubblingEventHandler, Float, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
+import { BubblingEventHandler, Double, Float, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
 import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
-import { PhotoFile } from "./NativeVisionCameraModule";
+import { PhotoFile } from "./types/PhotoFile";
 
 export interface TakePhotoOptions {
   flash?: WithDefault<'on' | 'off' | 'auto', 'auto'>
@@ -104,12 +104,12 @@ export interface NativeVisionCameraProps extends ViewProps {
 
 // export interface Point 
 export type VisionCameraComponentType = HostComponent<NativeVisionCameraProps>
-export interface VisionCameraCommands {
+export interface VisionCameraCommandsType {
   takePhoto: (viewRef: React.ElementRef<VisionCameraComponentType>) => Promise<PhotoFile>;
-  focus: (viewRef: React.ElementRef<VisionCameraComponentType>, point: string) => Promise<void>;
+  focus: (viewRef: React.ElementRef<VisionCameraComponentType>, x: Double, y: Double) => Promise<void>;
 }
 
-export const Commands: VisionCameraCommands = codegenNativeCommands<VisionCameraCommands>({
+export const VisionCameraCommands: VisionCameraCommandsType = codegenNativeCommands<VisionCameraCommandsType>({
   supportedCommands: [
     'takePhoto',
     'focus',
