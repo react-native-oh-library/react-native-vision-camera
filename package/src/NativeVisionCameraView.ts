@@ -85,6 +85,7 @@ export interface NativeVisionCameraProps extends ViewProps {
   exposure?: WithDefault<Int32, 0>;
   zoom?: WithDefault<Float, 1.0>;
   audio?: WithDefault<boolean, false>;
+  video?: WithDefault<boolean, false>;
   torch?: WithDefault<'off' | 'on', 'off'>;
   onStarted?: BubblingEventHandler<Readonly<{}>>;
   onStopped?: BubblingEventHandler<Readonly<{}>>;
