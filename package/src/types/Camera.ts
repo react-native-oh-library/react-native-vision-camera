@@ -1,6 +1,5 @@
 import { ViewProps } from "react-native";
 import { CameraDevice, CameraDeviceFormat } from "./CameraDevice";
-import { CameraRuntimeError } from "./CameraError";
 import { CodeScanner } from "./CodeScanner";
 
 export interface VisionCameraProps extends ViewProps {
@@ -130,7 +129,7 @@ export interface VisionCameraProps extends ViewProps {
     /**
      * Called when any kind of runtime error occured.
      */
-    onError?: (error: CameraRuntimeError) => void
+    onError?: (error: { error: string }) => void
     /**
      * Called when the camera session was successfully initialized. This will get called everytime a new device is set.
      */
