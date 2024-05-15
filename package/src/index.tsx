@@ -3,11 +3,12 @@ import { View } from "react-native";
 import React, { forwardRef, memo } from "react";
 import type { NativeVisionCameraProps } from './NativeVisionCameraView';
 import RTNVisionCamera from './NativeVisionCameraView';
-import NativeVisionCameraModule from "./NativeVisionCameraModule";
-export * from './hooks/useCameraDevice'
-export * from './hooks/useCameraDevices'
-export * from './hooks/useCameraFormat'
-export * from './hooks/useCameraPermission'
+export * from './hooks/useCameraDevice';
+export * from './hooks/useCameraDevices';
+export * from './hooks/useCameraFormat';
+export * from './hooks/useCameraPermission';
+export * from './hooks/useCodeScanner';
+export * from './types/CodeScanner';
 
 export interface PhotoFile {
     width: number
@@ -74,14 +75,9 @@ export interface CameraStaticProperties {
 }
 
 interface CameraMethods {
-    takePhoto: () => Promise<PhotoFile>;
-    focus: () => void;
 }
 
 
 export const Camera: React.ComponentType<NativeVisionCameraProps> & CameraStaticProperties & CameraMethods = CameraComponent as any
-
-Camera.takePhoto = () => NativeVisionCameraModule.takePhoto();
-Camera.focus = () => NativeVisionCameraModule.focus();
 
 export default Camera;

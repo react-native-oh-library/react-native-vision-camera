@@ -43,7 +43,7 @@
   },
   "scripts": {
     "codegen": "cd D:\\rnoh\\tester && npm run codegen",
-    "har": "rm -rf D:\\rnoh\\tester\\harmony\\vision_camera && cp -r .\\harmony\\vision_camera D:\\rnoh\\tester\\harmony",
+    "har": "Remove-Item -Path D:\\rnoh\\tester\\harmony\\vision_camera && cp -r .\\harmony\\vision_camera D:\\rnoh\\tester\\harmony",
     "move": "npm run build && npm pack && copy .\\*.tgz D:\\rnoh\\tester && cd D:\\rnoh\\tester && npm i @react-native-oh-tpl/react-native-vision-camera@file:./react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz -dd && npm run codegen",
     "move2": "npm run build && npm pack && copy .\\*.tgz D:\\Project\\AndroidProject && cd D:\\Project\\AndroidProject && npm i @react-native-oh-tpl/react-native-vision-camera@file:./react-native-oh-tpl-react-native-vision-camera-4.0.1-0.0.1.tgz -dd && cd .\\android && .\\gradlew.bat generateCodegenArtifactsFromSchema",
     "typescript": "tsc --noEmit",

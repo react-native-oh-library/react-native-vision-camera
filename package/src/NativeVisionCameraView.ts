@@ -2,6 +2,15 @@ import type { ViewProps } from "react-native/Libraries/Components/View/ViewPropT
 import type { HostComponent } from "react-native";
 import codegenNativeComponent from "react-native/Libraries/Utilities/codegenNativeComponent";
 import { BubblingEventHandler, Float, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
+import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
+import { PhotoFile } from "./NativeVisionCameraModule";
+
+export interface TakePhotoOptions {
+  flash?: WithDefault<'on' | 'off' | 'auto', 'auto'>
+  enableAutoRedEyeReduction?: WithDefault<boolean, false>;
+  enableAutoDistortionCorrection?: WithDefault<boolean, false>;
+  enableShutterSound?: WithDefault<boolean, true>;
+}
 
 type Orientation = WithDefault<'portrait' | 'portrait-upside-down' | 'landscape-left' | 'landscape-right', 'portrait'>
 type AutoFocusSystem = WithDefault<'contrast-detection' | 'phase-detection' | 'none', 'contrast-detection'>
@@ -90,10 +99,24 @@ export interface NativeVisionCameraProps extends ViewProps {
   onStarted?: BubblingEventHandler<Readonly<{}>>;
   onStopped?: BubblingEventHandler<Readonly<{}>>;
   onInitialized?: BubblingEventHandler<Readonly<{}>>;
-  onError?: BubblingEventHandler<Readonly<{}>>;
+  onError?: BubblingEventHandler<{ error: string }>;
 }
+
+// export interface Point 
+export type VisionCameraComponentType = HostComponent<NativeVisionCameraProps>
+export interface VisionCameraCommands {
+  takePhoto: (viewRef: React.ElementRef<VisionCameraComponentType>) => Promise<PhotoFile>;
+  focus: (viewRef: React.ElementRef<VisionCameraComponentType>, point: string) => Promise<void>;
+}
+
+export const Commands: VisionCameraCommands = codegenNativeCommands<VisionCameraCommands>({
+  supportedCommands: [
+    'takePhoto',
+    'focus',
+  ],
+});
 
 export default codegenNativeComponent<NativeVisionCameraProps>(
   "VisionCameraView"
-) as HostComponent<NativeVisionCameraProps>;
+) as VisionCameraComponentType;
 

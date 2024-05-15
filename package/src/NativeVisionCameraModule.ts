@@ -15,8 +15,6 @@ export type CameraDevicesChangedCallback = (newDevices: CameraDevice[]) => void;
 export type CameraDevicesChangedReturn = unknown;
 
 export interface Spec extends TurboModule {
-    takePhoto: () => Promise<PhotoFile>;
-    focus: () => Promise<void>;
     getAvailableCameraDevices: () => CameraDevice[];
     addCameraDevicesChangedListener: (listener: CameraDevicesChangedCallback) => CameraDevicesChangedReturn;
     getCameraPermissionStatus: () => CameraPermissionStatus;
