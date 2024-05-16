@@ -1,4 +1,5 @@
-import enumBox from "./CameraEnumBox"
+import { Orientation } from "./CameraEnumBox"
+import { Permissions } from '@kit.AbilityKit';
 
 /**
  * VC坐标系(x,y)-> OH坐标系(x/w,y/h)
@@ -6,8 +7,8 @@ import enumBox from "./CameraEnumBox"
  * harmony：焦点应在0-1坐标系内，该坐标系左上角为{0，0}，右下角为{1，1}
  */
 export interface Point {
-  x: number;
-  y: number;
+    x: number;
+    y: number;
 }
 
 
@@ -59,7 +60,7 @@ export interface PhotoFile {
    *
    * Note that Camera sensors are landscape, so e.g. "portrait" photos will have a value of "landscape-left", etc.
    */
-  orientation: enumBox.Orientation
+  orientation: Orientation
   /**
    * Whether this photo is mirrored (selfies) or not.
    */
@@ -74,34 +75,65 @@ export interface PhotoFile {
    */
   path: string
 }
-
 export interface ScanResult {
-  codes: Code[]
-  frame: CodeScannerFrame
+    codes: Code[]
+    frame: CodeScannerFrame
 }
 
 export interface Code {
-  type: string
-  value?: string
-  corners?: Point[]
-  frame?: Frame
+    type: string
+    value?: string
+    corners?: Point[]
+    frame?: Frame
 }
 
 export interface CodeScannerFrame {
-  width: number
-  height: number
+    width: number
+    height: number
 }
 
 export interface Frame {
-  x: number
-  y: number
-  width: number
-  height: number
+    x: number
+    y: number
+    width: number
+    height: number
 }
 
 export interface Rect {
-  left: number
-  top: number
-  right: number
-  bottom: number
+    left: number
+    top: number
+    right: number
+    bottom: number
 }
+
+export interface CodeScanner {
+  codeTypes?: CodeType[]
+  onCodeScanned?: (codes?: Code[], frame?: CodeScannerFrame) => void
+  // onCodeScanned?: () => void
+}
+export const PermissionArray: Array<Permissions> = [
+  'ohos.permission.CAMERA',
+  'ohos.permission.MEDIA_LOCATION',
+  'ohos.permission.MICROPHONE',
+  'ohos.permission.WRITE_IMAGEVIDEO',
+  'ohos.permission.READ_IMAGEVIDEO',
+];
+
+export type CameraPermissionStatus = 'granted' | 'not-determined' | 'denied' | 'restricted'
+
+export type CameraPermissionRequestResult = 'granted' | 'denied'
+
+export type CodeType =
+ | 'code-128'
+  | 'code-39'
+  | 'code-93'
+  | 'codabar'
+  | 'ean-13'
+  | 'ean-8'
+  | 'itf'
+  | 'upc-e'
+  | 'upc-a'
+  | 'qr'
+  | 'pdf-417'
+  | 'aztec'
+  | 'data-matrix'

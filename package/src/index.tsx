@@ -16,6 +16,26 @@ import { PhotoFile } from "./types/PhotoFile";
 import { VisionCameraProps } from "./types/Camera";
 import { Double } from "react-native/Libraries/Types/CodegenTypes";
 
+// Types
+export * from './types/CameraDevice'
+export * from './types/Frame'
+export * from './types/Orientation'
+export * from './types/PhotoFile'
+export * from './types/PixelFormat'
+export * from './types/Point'
+export * from './types/CodeScanner'
+
+// Devices API
+export * from './devices/getCameraFormat'
+export * from './devices/getCameraDevice'
+export * from './devices/Templates'
+
+// Hooks
+export * from './hooks/useCameraDevice'
+export * from './hooks/useCameraDevices'
+export * from './hooks/useCameraFormat'
+export * from './hooks/useCameraPermission'
+export * from './hooks/useCodeScanner'
 export interface VisionCameraRef extends Omit<VisionCameraCommandsType, 'focus' | 'takePhoto'> {
     takePhoto: () => Promise<PhotoFile>;
     focus: (x: Double, y: Double) => Promise<void>;

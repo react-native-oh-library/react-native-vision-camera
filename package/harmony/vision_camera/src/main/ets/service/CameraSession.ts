@@ -1,6 +1,6 @@
 import camera from '@ohos.multimedia.camera';
 import Logger from '../utils/Logger';
-import { Point } from '../core/CameraConfig';
+import { PhotoFile, Point, TakePhotoOptions } from '../core/CameraConfig';
 import { media } from '@kit.MediaKit';
 import { Context } from '@kit.AbilityKit';
 import image from '@ohos.multimedia.image';
@@ -9,6 +9,7 @@ import fs from '@ohos.file.fs';
 
 import PhotoAccessHelper from '@ohos.file.photoAccessHelper';
 import { display } from '@kit.ArkUI';
+import { dataSharePredicates } from '@kit.ArkData';
 
 const TAG: string = 'CameraSession:'
 
@@ -32,6 +33,7 @@ export default class CameraSession {
   private videoOutput?: camera.VideoOutput;
 
   private photoProfile?: camera.Profile;
+  private takingPhoto: boolean = false;
 
   private videoSession?: camera.PhotoSession;
   // private fileAsset?: mediaLibrary.FileAsset;
@@ -63,20 +65,20 @@ export default class CameraSession {
   };
   private videoSourceType: number = 0;
 
-  constructor(context: Context) {
-    this.context = context;
+  constructor() {
+    this.context = getContext(this);
     this.localDisplay = display.getDefaultDisplaySync();
-    if(this.localDisplay){
+    if (this.localDisplay) {
       Logger.info(TAG, `localDisplay: ${JSON.stringify(this.localDisplay)}`);
       let previewSize = {
-        surfaceWidth: this.localDisplay.width, surfaceHeight: this.localDisplay.height-126
+        surfaceWidth: this.localDisplay.width, surfaceHeight: this.localDisplay.height
       }
-      // this.rect = previewSize;
+      this.rect = previewSize;
     }
 
     try {
       Logger.info(TAG, 'getCameraManager try begin');
-      this.cameraManager = camera.getCameraManager(context);
+      this.cameraManager = camera.getCameraManager(this.context);
       Logger.info(TAG, 'getCameraManager try end');
     } catch (e) {
       Logger.info(TAG, `getCameraManager catch e:${JSON.stringify(e)}`);
@@ -101,28 +103,34 @@ export default class CameraSession {
     Logger.info(TAG, 'initCamera createCameraInput');
     this.capability = this.cameraManager.getSupportedOutputCapability(mCamera, this.mediaModel);
     let previewProfile = this.capability.previewProfiles[0];
+    Logger.info(TAG, 'initCamera createCameraInput');
     this.previewOutput = this.cameraManager.createPreviewOutput(previewProfile, surfaceId);
     Logger.info(TAG, 'initCamera createPreviewOutput');
 
-    this.photoProfile = this.capability.photoProfiles[this.capability.photoProfiles.length-1];
-    Logger.info(TAG, `initCamera createCaptureSession: photoProfile,size: ${JSON.stringify(this.photoProfile.size)}`);
-    this.photoOutPut = this.cameraManager.createPhotoOutput(this.photoProfile);
     this.cameraSession = this.cameraManager.createSession(this.mediaModel);
-    if(this.mediaModel === camera.SceneMode.NORMAL_PHOTO){
+    if (this.mediaModel === camera.SceneMode.NORMAL_PHOTO) {
+      Logger.info(TAG, `initCamera photo branch`);
+      this.photoProfile = this.capability.photoProfiles[this.capability.photoProfiles.length-1];
+      Logger.info(TAG, `initCamera createCaptureSession: photoProfile,size: ${JSON.stringify(this.photoProfile.size)}`);
+      this.photoOutPut = this.cameraManager.createPhotoOutput(this.photoProfile);
       this.photoSession = this.cameraSession as camera.PhotoSession;
-    }else{
-      this.videoSession = this.cameraSession as camera.PhotoSession;
+      Logger.info(TAG, 'initCamera cameraSession');
+      this.cameraSession.beginConfig();
+      Logger.info(TAG, 'beginConfig');
+      this.cameraSession.addInput(this.cameraInput);
+      this.cameraSession.addOutput(this.previewOutput);
+      this.cameraSession.addOutput(this.photoOutPut);
+      await this.cameraSession.commitConfig();
+      await this.cameraSession.start();
+      this.setPhotoOutputCb(this.photoOutPut);
+      this.focus(undefined);
+    } else {
+      Logger.info(TAG, `initCamera video branch`);
+      // output
+      this.videoSession = this.cameraSession as camera.VideoSession;
+      // videoSession.addXX
+      // videooutputCb
     }
-    Logger.info(TAG, 'initCamera cameraSession');
-    this.cameraSession.beginConfig();
-    Logger.info(TAG, 'beginConfig');
-    this.cameraSession.addInput(this.cameraInput);
-    this.cameraSession.addOutput(this.previewOutput);
-    this.cameraSession.addOutput(this.photoOutPut);
-    await this.cameraSession.commitConfig();
-    await this.cameraSession.start();
-    this.setPhotoOutputCb(this.photoOutPut);
-    this.focus(undefined);
     Logger.info(TAG, 'cameraSession start');
   }
 
@@ -166,6 +174,7 @@ export default class CameraSession {
     };
     let photoUri: string = await photoAccessHelper.createAsset(PhotoAccessHelper.PhotoType.IMAGE, 'jpg', options);
     Logger.info(TAG, `savePicture photoUri: ${photoUri}`);
+    this.photoPath = photoUri;
     //createAsset的调用需要ohos.permission.READ_IMAGEVIDEO和ohos.permission.WRITE_IMAGEVIDEO的权限
     let file: fs.File = fs.openSync(photoUri, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
     await fs.write(file.fd, buffer);
@@ -272,21 +281,91 @@ export default class CameraSession {
   /**
    * 拍照
    */
-  taskPhoto() {
+  async taskPhoto(options: TakePhotoOptions): Promise<PhotoFile> {
     Logger.info(TAG, 'taskPhone to capture the photo ');
-    let photoCaptureSetting: camera.PhotoCaptureSetting = {
-      quality: camera.QualityLevel.QUALITY_LEVEL_HIGH, // 设置图片质量高
-      rotation: camera.ImageRotation.ROTATION_0 // 设置图片旋转角度0
-    }
-    // 使用当前拍照设置进行拍照
-    this.photoOutPut.capture(photoCaptureSetting, (err: BusinessError) => {
-      if (err) {
-        Logger.error(TAG, `Failed to capture error: ${err.message}`);
-        return;
+    this.takingPhoto = true;
+    if (options && this.photoSession.hasFlash()) {
+      if (options.flash === 'on' && this.photoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_OPEN)) {
+        this.photoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_OPEN);
+      } else if (options.flash === 'off' &&
+      this.photoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_CLOSE)) {
+        this.photoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_CLOSE);
+      } else if (options.flash === 'auto' &&
+      this.photoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_AUTO)) {
+        this.photoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_AUTO);
       }
-      Logger.info(TAG, 'Callback invoked to indicate the photo capture request success.');
-    });
+    }
+    try {
+      await this.photoOutPut.capture();
+    } catch (error) {
+      this.takingPhoto = false;
+      Logger.error(TAG, `Failed to capture error: ${error.message}`);
+      return;
+    }
+    Logger.info(TAG, `photoOutPut.capture success`);
+    await this.waitForPathResult();
+    let thumbnail = await this.getThumbnail();
+    let photoFile: PhotoFile = {} as PhotoFile;
+    photoFile.width = this.photoProfile?.size.width;
+    photoFile.height = this.photoProfile?.size.height;
+    photoFile.path = this.photoPath;
+    photoFile.isRawPhoto = false;
+    photoFile.thumbnail = thumbnail;
+    Logger.info(TAG, `taskPhoto photoFile:${JSON.stringify(photoFile)}`);
+
+    this.takingPhoto = false;
+    this.photoPath = '';
+    return photoFile;
   }
+  /**
+   * 获取缩略图
+   * @returns
+   */
+  async getThumbnail(): Promise<Record<string, image.ImageInfo>> {
+    Logger.info(TAG, `getThumbnail start`);
+    let fileName = this.photoPath.substring(this.photoPath.lastIndexOf('/') + 1);
+    Logger.info(TAG, `getThumbnail fileName: ${fileName}`);
+    let predicates: dataSharePredicates.DataSharePredicates = new dataSharePredicates.DataSharePredicates();
+    let fetchOption: PhotoAccessHelper.FetchOptions = {
+      fetchColumns: [PhotoAccessHelper.PhotoKeys.URI, PhotoAccessHelper.PhotoKeys.PHOTO_TYPE,
+        PhotoAccessHelper.PhotoKeys.SIZE, PhotoAccessHelper.PhotoKeys.DATE_ADDED],
+      predicates: predicates.equalTo(PhotoAccessHelper.PhotoKeys.DISPLAY_NAME, fileName)
+    };
+    let photoAccessHelper: PhotoAccessHelper.PhotoAccessHelper = PhotoAccessHelper.getPhotoAccessHelper(this.context);
+    let fetchResult: PhotoAccessHelper.FetchResult<PhotoAccessHelper.PhotoAsset> =
+      await photoAccessHelper.getAssets(fetchOption);
+    let asset: PhotoAccessHelper.PhotoAsset = await fetchResult.getFirstObject();
+    Logger.info(TAG, `getThumbnail asset ${JSON.stringify(asset.uri)}`);
+    Logger.info(TAG, `getThumbnail asset ${JSON.stringify(asset.displayName)}`);
+    let size: image.Size = {
+      width: 720, height: 720
+    };
+    let pixelMap = await asset?.getThumbnail(size);
+    let imageInfo: image.ImageInfo = await pixelMap?.getImageInfo()
+    let result: Record<string, image.ImageInfo> = {
+      [fileName]: imageInfo
+    }
+    Logger.info(TAG, `getThumbnail result ${JSON.stringify(result)}`);
+    return result;
+  }
+
+  /**
+   * 等待path的值被设置
+   * @returns
+   */
+  private waitForPathResult(): Promise<void> {
+    Logger.info(TAG, 'waitForPathResult start');
+    return new Promise(resolve => {
+      const intervalId = setInterval(() => {
+        if (this.photoPath !== '') {
+          clearInterval(intervalId);
+          Logger.info(TAG, 'waitForPathResult clearInterval');
+          resolve();
+        }
+      }, 100);
+    })
+  }
+
 
   /**
    * 获取可用设备
@@ -301,6 +380,7 @@ export default class CameraSession {
     Logger.info(TAG, `getAvailableCameraDevices get cameras ${camerasArray.length}`);
     return camerasArray;
   }
+
   // 开始录像
   // 停止录像
   // 暂停录像
