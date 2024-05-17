@@ -1,9 +1,12 @@
 import type { ViewProps } from "react-native/Libraries/Components/View/ViewPropTypes";;
 import type { HostComponent } from "react-native";
 import codegenNativeComponent from "react-native/Libraries/Utilities/codegenNativeComponent";
-import { BubblingEventHandler, Double, Float, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
+import { BubblingEventHandler, Float, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
 import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
 import { PhotoFile } from "./types/PhotoFile";
+import { Code, CodeScannerFrame } from "./types/CodeScanner";
+import { Point } from "./types/Point";
+import { RecordVideoOptions } from "./types/VideoFile";
 
 export interface TakePhotoOptions {
   flash?: WithDefault<'on' | 'off' | 'auto', 'auto'>
@@ -74,7 +77,7 @@ type CodeType =
 
 interface CodeScanner {
   codeTypes?: WithDefault<ReadonlyArray<CodeType>, null>;
-  // onCodeScanned?: BubblingEventHandler<Readonly<{}>>;
+  onCodeScanned: (codes: Code[], frame: CodeScannerFrame) => void
   regionOfInterest?: {
     x: Int32
     y: Int32
@@ -113,9 +116,9 @@ export interface VisionCameraCommandsType {
   getCameraPermissionStatus(viewRef: React.ElementRef<VisionCameraComponentType>): any;
   addCameraDevicesChangedListener(viewRef: React.ElementRef<VisionCameraComponentType>): any;
   getAvailableCameraDevices(viewRef: React.ElementRef<VisionCameraComponentType>): any;
-  takePhoto: (viewRef: React.ElementRef<VisionCameraComponentType>) => Promise<PhotoFile>;
-  focus: (viewRef: React.ElementRef<VisionCameraComponentType>, x: Double, y: Double) => Promise<void>;
-  startRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;
+  takePhoto: (viewRef: React.ElementRef<VisionCameraComponentType>, options?: TakePhotoOptions) => Promise<PhotoFile>;
+  focus: (viewRef: React.ElementRef<VisionCameraComponentType>, point: Point) => Promise<void>;
+  startRecording: (viewRef: React.ElementRef<VisionCameraComponentType>, options: RecordVideoOptions) => void;
   stopRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;
   pauseRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;
   resumeRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;

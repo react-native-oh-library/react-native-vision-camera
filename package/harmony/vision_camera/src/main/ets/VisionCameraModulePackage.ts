@@ -6,19 +6,19 @@ import type {
   TurboModule,
   TurboModuleContext,
 } from "@rnoh/react-native-openharmony/ts";
-import { TM } from "@rnoh/react-native-openharmony/generated/ts";
 import { VisionCameraModule } from './VisionCameraModule';
+import { VisionCameraModuleSpec } from './types/VisionCameraModuleSpec';
 
 class VisionCameraModulesFactory extends TurboModulesFactory {
   createTurboModule(name: string): TurboModule | null {
-    if (name === TM.VisionCameraModule.NAME) {
+    if (name === VisionCameraModuleSpec.NAME) {
       return new VisionCameraModule(this.ctx);
     }
     return null;
   }
 
   hasTurboModule(name: string): boolean {
-    return name === TM.VisionCameraModule.NAME;
+    return name === VisionCameraModuleSpec.NAME;
   }
 }
 

@@ -12,9 +12,8 @@ import NativeVisionCameraView, { VisionCameraCommands } from "./NativeVisionCame
 import type { VisionCameraCommandsType, VisionCameraComponentType } from "./NativeVisionCameraView";
 
 import type { NativeSyntheticEvent } from "react-native";
-import { PhotoFile } from "./types/PhotoFile";
+import { PhotoFile, TakePhotoOptions } from "./types/PhotoFile";
 import { VisionCameraProps } from "./types/Camera";
-import { Double } from "react-native/Libraries/Types/CodegenTypes";
 
 
 // Types
@@ -40,6 +39,8 @@ export * from './hooks/useCodeScanner'
 
 import { CameraDevicesChangedCallback, CameraDevicesChangedReturn, CameraPermissionRequestResult, CameraPermissionStatus } from "./NativeVisionCameraModule";
 import { CameraDevice } from "./types/CameraDevice";
+import { Point } from "./types/Point";
+import { RecordVideoOptions } from "./types/VideoFile";
 
 type VisionCameraCommands =
     | 'takePhoto'
@@ -59,9 +60,9 @@ type VisionCameraCommands =
     | 'requestLocationPermission'
 
 export interface VisionCameraRef extends Omit<VisionCameraCommandsType, VisionCameraCommands> {
-    takePhoto: () => Promise<PhotoFile>;
-    focus: (x: Double, y: Double) => Promise<void>;
-    startRecording: () => void;
+    takePhoto: (options?: TakePhotoOptions) => Promise<PhotoFile>;
+    focus: (point: Point) => Promise<void>;
+    startRecording: (options: RecordVideoOptions) => void;
     stopRecording: () => void;
     pauseRecording: () => void;
     resumeRecording: () => void;
@@ -105,26 +106,26 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
         const VisionCameraRef = useRef<React.ElementRef<VisionCameraComponentType>>(null);
 
         const takePhoto = useCallback(
-            () => {
+            (options?: TakePhotoOptions) => {
                 if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
-                return VisionCameraCommands.takePhoto(VisionCameraRef.current);
+                return VisionCameraCommands.takePhoto(VisionCameraRef.current, options);
             },
             []
         );
 
         const focus = useCallback(
-            (x: Double, y: Double) => {
-                if (isNaN(x) || isNaN(y)) throw new Error("VisionCameraCommands focus point x or y is NaN");
+            (point: Point) => {
+                if (!point) throw new Error("VisionCameraCommands focus point is Null");
                 if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
-                return VisionCameraCommands.focus(VisionCameraRef.current, x, y);
+                return VisionCameraCommands.focus(VisionCameraRef.current, point);
             },
             []
         );
 
         const startRecording = useCallback(
-            () => {
+            (options: RecordVideoOptions) => {
                 if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
-                return VisionCameraCommands.startRecording(VisionCameraRef.current);
+                return VisionCameraCommands.startRecording(VisionCameraRef.current, options);
             },
             []
         );

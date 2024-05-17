@@ -10,6 +10,7 @@ import fs from '@ohos.file.fs';
 import PhotoAccessHelper from '@ohos.file.photoAccessHelper';
 import { display } from '@kit.ArkUI';
 import { dataSharePredicates } from '@kit.ArkData';
+declare function getContext(component?: Object | undefined): Context;
 
 const TAG: string = 'CameraSession:'
 

@@ -22,6 +22,7 @@ import common from '@ohos.app.ability.common';
 
 const TAG: string = '[Permission]';
 
+declare function getContext(context: any): common.UIAbilityContext;
 
 export default class PermissionUtils {
   private atManager: abilityAccessCtrl.AtManager;
@@ -29,7 +30,7 @@ export default class PermissionUtils {
 
 
   constructor() {
-    this.context = getContext(this) as common.UIAbilityContext;
+    this.context = getContext(this);
     this.atManager = abilityAccessCtrl.createAtManager();
   }
 

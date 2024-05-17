@@ -1,10 +1,10 @@
 import { TurboModule } from '@rnoh/react-native-openharmony/ts';
-import { TM } from "@rnoh/react-native-openharmony/generated/ts"
 import CameraManager from "./service/CameraManager";
 import { CameraDeviceInfo } from './core/CameraDeviceInfo';
 import { CameraPermissionRequestResult, CameraPermissionStatus } from './core/CameraConfig';
+import { VisionCameraModuleSpec } from './types/VisionCameraModuleSpec';
 
-export class VisionCameraModule extends TurboModule implements TM.VisionCameraModule.Spec {
+export class VisionCameraModule extends TurboModule implements VisionCameraModuleSpec.Spec {
   private cameraManager: CameraManager = new CameraManager();
 
   addCameraDevicesChangedListener(listener: (newDevices: unknown[]) => void): Object {

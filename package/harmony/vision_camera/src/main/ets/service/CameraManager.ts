@@ -5,7 +5,8 @@ import { CameraDeviceFormat, CameraDeviceInfo } from '../core/CameraDeviceInfo';
 import { PhysicalCameraDeviceType, CameraPosition, VideoStabilizationMode } from '../core/CameraEnumBox';
 import { CameraPermissionRequestResult, CameraPermissionStatus, PermissionArray } from '../core/CameraConfig';
 import PermissionUtils from "../utils/PermissionUtils";
-
+import { Context } from '@kit.AbilityKit';
+declare function getContext(component?: Object | undefined): Context;
 
 const TAG: string = 'CameraDevice:'
 

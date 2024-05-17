@@ -1,7 +1,4 @@
 import { RNComponentContext, RNViewBase, Tag } from '@rnoh/react-native-openharmony';
-// import codegen 生成的内容
-import { RNC } from '@rnoh/react-native-openharmony/generated';
-
 import { BusinessError } from '@ohos.base';
 import Logger from './utils/Logger';
 import PermissionUtils from './utils/PermissionUtils';
@@ -19,17 +16,18 @@ import ScanSession from './service/ScanSession';
 import { cameraState } from './core/CameraEnumBox';
 import CameraManager from "./service/CameraManager";
 import { CameraDeviceInfo } from './core/CameraDeviceInfo';
+import { VisionCameraViewSpec } from './types/VisionCameraViewSpec';
 
 const TAG: string = 'VisionCameraView:'
 
 @Component
 export struct VisionCameraView {
-  public static readonly NAME = RNC.VisionCameraView.NAME
+  public static readonly NAME = VisionCameraViewSpec.NAME
   public ctx!: RNComponentContext
   public tag: number = 0
-  @State private descriptorWrapper: RNC.VisionCameraView.DescriptorWrapper =
-    {} as RNC.VisionCameraView.DescriptorWrapper
-  private eventEmitter: RNC.VisionCameraView.EventEmitter | undefined = undefined
+  @State private descriptorWrapper: VisionCameraViewSpec.DescriptorWrapper =
+    {} as VisionCameraViewSpec.DescriptorWrapper
+  private eventEmitter: VisionCameraViewSpec.EventEmitter | undefined = undefined
   private cleanUpCallbacks: (() => void)[] = []
   private cleanCommandCallback?: () => void;
   @State propertyArr: Array<string> = [];
@@ -50,11 +48,11 @@ export struct VisionCameraView {
     this.localDisplay = display.getDefaultDisplaySync();
 
     Logger.info(TAG, `localDisplay  ${JSON.stringify(this.localDisplay)}`);
-    this.eventEmitter = new RNC.VisionCameraView.EventEmitter(this.ctx.rnInstance, this.tag)
-    this.onDescriptorWrapperChange(this.ctx.descriptorRegistry.findDescriptorWrapperByTag<RNC.VisionCameraView.DescriptorWrapper>(this.tag)!)
+    this.eventEmitter = new VisionCameraViewSpec.EventEmitter(this.ctx.rnInstance, this.tag)
+    this.onDescriptorWrapperChange(this.ctx.descriptorRegistry.findDescriptorWrapperByTag<VisionCameraViewSpec.DescriptorWrapper>(this.tag)!)
     this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
       (_descriptor, newDescriptorWrapper) => {
-        this.onDescriptorWrapperChange(newDescriptorWrapper! as RNC.VisionCameraView.DescriptorWrapper)
+        this.onDescriptorWrapperChange(newDescriptorWrapper! as VisionCameraViewSpec.DescriptorWrapper)
       }
     ))
 
@@ -89,7 +87,7 @@ export struct VisionCameraView {
     })
   }
 
-  private onDescriptorWrapperChange(descriptorWrapper: RNC.VisionCameraView.DescriptorWrapper) {
+  private onDescriptorWrapperChange(descriptorWrapper: VisionCameraViewSpec.DescriptorWrapper) {
     Logger.info(TAG, `onDescriptorWrapperChange  ${JSON.stringify(descriptorWrapper)}`);
     this.descriptorWrapper = descriptorWrapper
     this.childrenTags = descriptorWrapper.childrenTags
@@ -110,14 +108,16 @@ export struct VisionCameraView {
     if (this.ctx) {
       this.cleanCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
         this.tag,
-        (command, args: (string | number)[]) => {
+        (command, args: (string | number | object)[]) => {
           if (command === 'takePhoto') {
             Logger.debug(TAG, `registerCommandCallback: takePhoto,  ${JSON.stringify(args)}`)
-            this.taskPhoto({});
+            const options = args[0] as TakePhotoOptions;
+            this.taskPhoto(options);
           }
           if (command === 'focus') {
             Logger.debug(TAG, `registerCommandCallback: takePhoto,  ${JSON.stringify(args)}`)
-            this.taskPhoto({});
+            const point = args[0] as Point;
+            this.focus(point);
           }
           if (command === 'getAvailableCameraDevices') {
             Logger.debug(TAG, `registerCommandCallback: getAvailableCameraDevices.`)
