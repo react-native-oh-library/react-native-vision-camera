@@ -16,6 +16,7 @@ import { PhotoFile } from "./types/PhotoFile";
 import { VisionCameraProps } from "./types/Camera";
 import { Double } from "react-native/Libraries/Types/CodegenTypes";
 
+
 // Types
 export * from './types/CameraDevice'
 export * from './types/Frame'
@@ -36,7 +37,28 @@ export * from './hooks/useCameraDevices'
 export * from './hooks/useCameraFormat'
 export * from './hooks/useCameraPermission'
 export * from './hooks/useCodeScanner'
-export interface VisionCameraRef extends Omit<VisionCameraCommandsType, 'focus' | 'takePhoto'> {
+
+import { CameraDevicesChangedCallback, CameraDevicesChangedReturn, CameraPermissionRequestResult, CameraPermissionStatus } from "./NativeVisionCameraModule";
+import { CameraDevice } from "./types/CameraDevice";
+
+type VisionCameraCommands =
+    | 'takePhoto'
+    | 'focus'
+    | 'startRecording'
+    | 'stopRecording'
+    | 'pauseRecording'
+    | 'resumeRecording'
+    | 'cancelRecording'
+    | 'getAvailableCameraDevices'
+    | 'addCameraDevicesChangedListener'
+    | 'getCameraPermissionStatus'
+    | 'requestCameraPermission'
+    | 'getMicrophonePermissionStatus'
+    | 'requestMicrophonePermission'
+    | 'getLocationPermissionStatus'
+    | 'requestLocationPermission'
+
+export interface VisionCameraRef extends Omit<VisionCameraCommandsType, VisionCameraCommands> {
     takePhoto: () => Promise<PhotoFile>;
     focus: (x: Double, y: Double) => Promise<void>;
     startRecording: () => void;
@@ -44,6 +66,14 @@ export interface VisionCameraRef extends Omit<VisionCameraCommandsType, 'focus' 
     pauseRecording: () => void;
     resumeRecording: () => void;
     cancelRecording: () => void;
+    getAvailableCameraDevices: () => CameraDevice[];
+    addCameraDevicesChangedListener: (listener: CameraDevicesChangedCallback) => CameraDevicesChangedReturn;
+    getCameraPermissionStatus: () => CameraPermissionStatus;
+    requestCameraPermission: () => Promise<CameraPermissionRequestResult>;
+    getMicrophonePermissionStatus: () => CameraPermissionStatus;
+    requestMicrophonePermission: () => Promise<CameraPermissionRequestResult>;
+    getLocationPermissionStatus: () => CameraPermissionStatus;
+    requestLocationPermission: () => Promise<CameraPermissionRequestResult>;
 }
 
 export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
@@ -131,6 +161,69 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             []
         );
 
+        const getAvailableCameraDevices = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.getAvailableCameraDevices(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const addCameraDevicesChangedListener = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.addCameraDevicesChangedListener(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const getCameraPermissionStatus = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.getCameraPermissionStatus(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const requestCameraPermission = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.requestCameraPermission(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const getMicrophonePermissionStatus = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.getMicrophonePermissionStatus(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const requestMicrophonePermission = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.requestMicrophonePermission(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const getLocationPermissionStatus = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.getLocationPermissionStatus(VisionCameraRef.current);
+            },
+            []
+        );
+
+        const requestLocationPermission = useCallback(
+            () => {
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                return VisionCameraCommands.requestLocationPermission(VisionCameraRef.current);
+            },
+            []
+        );
 
         const onVisionCameraStarted = useCallback(
             () => {
@@ -170,6 +263,14 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
                 pauseRecording,
                 resumeRecording,
                 cancelRecording,
+                getAvailableCameraDevices,
+                addCameraDevicesChangedListener,
+                getCameraPermissionStatus,
+                requestCameraPermission,
+                getMicrophonePermissionStatus,
+                requestMicrophonePermission,
+                getLocationPermissionStatus,
+                requestLocationPermission,
             }),
             [
                 focus,
@@ -179,6 +280,14 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
                 pauseRecording,
                 resumeRecording,
                 cancelRecording,
+                getAvailableCameraDevices,
+                addCameraDevicesChangedListener,
+                getCameraPermissionStatus,
+                requestCameraPermission,
+                getMicrophonePermissionStatus,
+                requestMicrophonePermission,
+                getLocationPermissionStatus,
+                requestLocationPermission,
             ]
         );
 

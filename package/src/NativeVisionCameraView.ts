@@ -105,6 +105,14 @@ export interface NativeVisionCameraProps extends ViewProps {
 // export interface Point 
 export type VisionCameraComponentType = HostComponent<NativeVisionCameraProps>
 export interface VisionCameraCommandsType {
+  requestLocationPermission(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  getLocationPermissionStatus(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  requestMicrophonePermission(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  getMicrophonePermissionStatus(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  requestCameraPermission(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  getCameraPermissionStatus(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  addCameraDevicesChangedListener(viewRef: React.ElementRef<VisionCameraComponentType>): any;
+  getAvailableCameraDevices(viewRef: React.ElementRef<VisionCameraComponentType>): any;
   takePhoto: (viewRef: React.ElementRef<VisionCameraComponentType>) => Promise<PhotoFile>;
   focus: (viewRef: React.ElementRef<VisionCameraComponentType>, x: Double, y: Double) => Promise<void>;
   startRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;
@@ -123,10 +131,17 @@ export const VisionCameraCommands: VisionCameraCommandsType = codegenNativeComma
     'pauseRecording',
     'resumeRecording',
     'cancelRecording',
+    'getAvailableCameraDevices',
+    'addCameraDevicesChangedListener',
+    'getCameraPermissionStatus',
+    'requestCameraPermission',
+    'getMicrophonePermissionStatus',
+    'requestMicrophonePermission',
+    'getLocationPermissionStatus',
+    'requestLocationPermission',
   ],
 });
 
 export default codegenNativeComponent<NativeVisionCameraProps>(
   "VisionCameraView"
 ) as VisionCameraComponentType;
-
