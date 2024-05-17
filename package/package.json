@@ -29,12 +29,7 @@
     "harmony"
   ],
   "harmony": {
-    "alias": "react-native-vision-camera",
-    "codegenConfig": {
-      "specPaths": [
-        "./src"
-      ]
-    }
+    "alias": "react-native-vision-camera"
   },
   "codegenConfig": {
     "name": "RTNVisionCameraSpecs",

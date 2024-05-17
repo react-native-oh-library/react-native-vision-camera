@@ -319,4 +319,6 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
     }
 );
 
+export interface Camera extends VisionCameraRef { };
+
 export default Camera;
