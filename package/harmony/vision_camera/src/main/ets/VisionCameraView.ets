@@ -16,6 +16,7 @@ import ScanSession from './service/ScanSession';
 import { cameraState } from './core/CameraEnumBox';
 import CameraManager from "./service/CameraManager";
 import { CameraDeviceInfo } from './core/CameraDeviceInfo';
+import Utils from './utils/Utils';
 import { VisionCameraViewSpec } from './types/VisionCameraViewSpec';
 
 const TAG: string = 'VisionCameraView:'
@@ -40,9 +41,12 @@ export struct VisionCameraView {
   private cameraState: cameraState = cameraState.PHOTO;
   rect: SurfaceRect = { surfaceWidth: 1920, surfaceHeight: 1080 };
   private scanSession: ScanSession = {} as ScanSession;
-  @Prop @Watch("codeScannerChange") CodeScanner: CodeScanner = {};
-  @State isScanEnd: boolean = false;
   private cameraManager: CameraManager = new CameraManager();
+  @State scaleValue: number = 1;
+  @State componentWidth: number = 0;
+  @State componentHeight: number = 0;
+  private timer = 0
+  private enableZoomGesture:boolean|undefined = undefined;
 
   aboutToAppear() {
     this.localDisplay = display.getDefaultDisplaySync();
@@ -58,15 +62,19 @@ export struct VisionCameraView {
 
     const descriptorBase = this.descriptorWrapper['descriptor'];
     const props = descriptorBase.rawProps;
+    this.enableZoomGesture = props.enableZoomGesture;
     Logger.info(TAG, `FG 1.1 ${JSON.stringify(props)}`)
     this.propertyArr = Object.entries(props).map((item: Array<string>) => `${item[0]}: ${item[1]}`)
     Logger.info(TAG, `FG 2 ${this.propertyArr}`)
     Logger.info(TAG, `FG 3 ${JSON.stringify(this.descriptorWrapper)}`)
     this.registerCommandCallback();
+
+    Logger.info(TAG, `props.registerCommandCallback end`);
     if (props.codeScanner) {
       this.cameraState = cameraState.SCAN;
       Logger.info(TAG, `props.codeScanner ${JSON.stringify(props.codeScanner)}`);
     }
+    Logger.info(TAG, `defaultGrantPermission before`);
     new PermissionUtils().defaultGrantPermission().then(res => {
       Logger.info(TAG, `权限申请成功  ${JSON.stringify(res)}`);
       this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
@@ -79,9 +87,16 @@ export struct VisionCameraView {
         this.scanStart();
       } else {
         this.cameraSession = new CameraSession();
-        this.cameraSession.initCamera(this.surfaceId);
+        this.cameraSession.initDeviceInfo().then(() => {
+          this.cameraSession.initCamera(this.surfaceId, props)
+          this.cameraSession.setResizeMode(props.resizeMode, this.localDisplay?.width, this.localDisplay?.height,
+          (width, height) => {
+            this.componentWidth = width;
+            this.componentHeight = height;
+          });
+        })
       }
-
+      this.onInitialized();
     }).catch((rej: BusinessError) => {
       Logger.info(TAG, `权限申请失败  ${JSON.stringify(rej)}`);
     })
@@ -93,13 +108,14 @@ export struct VisionCameraView {
     this.childrenTags = descriptorWrapper.childrenTags
   }
 
-  aboutToDisappear() {
+  async aboutToDisappear() {
     this.cleanUpCallbacks.forEach(cb => cb())
     Logger.info(TAG, 'aboutToDisappear begin');
     if (this.cameraState === cameraState.SCAN) {
+      clearTimeout(this.timer)
       this.scanSession.ScanRelease();
     } else {
-      this.cameraSession.cameraRelease();
+      await this.cameraSession.cameraRelease();
     }
     this.cleanCommandCallback?.();
   }
@@ -108,14 +124,14 @@ export struct VisionCameraView {
     if (this.ctx) {
       this.cleanCommandCallback = this.ctx.componentCommandReceiver.registerCommandCallback(
         this.tag,
-        (command, args: (string | number | object)[]) => {
+        (command, args: (string | number | boolean | object)[]) => {
           if (command === 'takePhoto') {
             Logger.debug(TAG, `registerCommandCallback: takePhoto,  ${JSON.stringify(args)}`)
             const options = args[0] as TakePhotoOptions;
             this.taskPhoto(options);
           }
           if (command === 'focus') {
-            Logger.debug(TAG, `registerCommandCallback: takePhoto,  ${JSON.stringify(args)}`)
+            Logger.debug(TAG, `registerCommandCallback: focus,  ${JSON.stringify(args)}`)
             const point = args[0] as Point;
             this.focus(point);
           }
@@ -147,28 +163,40 @@ export struct VisionCameraView {
     }
   }
 
-  async scanStart() {
-    this.isScanEnd = false
-    const scanResult = await this.scanSession.ScanStart(this.surfaceId);
-    this.isScanEnd = true
-    if (scanResult) {
-      // this.eventEmitter!.emit("onCodeScanned", scanResult)
-      Logger.info(TAG, `get scan result: ${JSON.stringify(scanResult)}`)
-    }
+  onInitialized() {
+    Logger.info(TAG, `emitDeviceEvent onInitialized`)
+    this.ctx.rnInstance.emitDeviceEvent('onInitialized', {});
+    Logger.info(TAG, `emitDeviceEvent onInitialized end`)
   }
 
-  async codeScannerChange() {
-    await this.scanSession.initScan(this.CodeScanner.codeTypes)
-    this.scanStart()
+  onError() {
+    Logger.info(TAG, `emitDeviceEvent onError`)
+    this.ctx.rnInstance.emitDeviceEvent('onError', { error: 'test' });
+  }
+
+
+  async scanStart() {
+    clearTimeout(this.timer)
+    const scanResult = await this.scanSession.ScanStart(this.surfaceId, this.localDisplay);
+    if (scanResult) {
+      this.ctx.rnInstance.emitDeviceEvent('onCodeScanned', scanResult);
+      Logger.info(TAG, `get scan result: ${JSON.stringify(scanResult)}`)
+
+      this.timer = setTimeout(() => {
+        this.scanStart()
+      }, 1000)
+    }
   }
 
   /**
    * 拍照
    */
-  taskPhoto(options: TakePhotoOptions): Promise<PhotoFile> {
-    Logger.info(TAG, `taskPhoto params: ${options}`)
-    return this.cameraSession.taskPhoto(options);
+  async taskPhoto(options: TakePhotoOptions): Promise<PhotoFile> {
+    const photoFile = await this.cameraSession.taskPhoto(options);
+    this.ctx.rnInstance.emitDeviceEvent('onTaskPhoto', photoFile);
+    return photoFile;
   }
+
   /**
    * focus
    * @param rnPoint
@@ -181,8 +209,7 @@ export struct VisionCameraView {
    * 获取可用设备
    */
   getAvailableCameraDevices(): CameraDeviceInfo[] {
-    let devices = this.cameraManager.getAvailableCameraDevices();
-    return this.cameraManager.convertCameraDeviceInfo(devices);
+    return this.cameraManager.getAvailableCameraDevices();
   }
 
   /**
@@ -246,35 +273,28 @@ export struct VisionCameraView {
               // this.mXComponentController.setXComponentSurfaceRect(temp);
               this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
             })
-            .width(this.localDisplay?.width + 'px')
-            .height(this.localDisplay?.height + 'px')
-        }.onClick((clickEvent) => {
+            .width(this.cameraState === cameraState.SCAN ? this.localDisplay?.width + 'px' : this.componentWidth + 'px')
+            .height(this.cameraState === cameraState.SCAN ? this.localDisplay?.height + 'px' : this.componentHeight + 'px')
+
+        }
+        .onClick((clickEvent) => {
           if (this.cameraState === cameraState.PHOTO) {
             this.cameraSession.focus({ x: vp2px(clickEvent.x), y: vp2px(clickEvent.y) } as Point)
           }
         })
         .width('100%')
         .height('100%')
-
-        Row() {
-          Button('拍照')
-            .height('100%')
-            .width(120)
-            .onClick(() => {
-              this.cameraSession.taskPhoto(undefined);
+        .justifyContent(FlexAlign.Center)
+        .gesture(
+          // 在组件上绑定三指触发的捏合手势
+          PinchGesture({ fingers: 2 })// 当捏合手势触发时，可以通过回调函数获取缩放比例，从而修改组件的缩放比例
+            .onActionUpdate((event: GestureEvent) => {
+              if(this.enableZoomGesture){
+                this.scaleValue = this.cameraSession.photoPreviewScale * event.scale;
+                Utils.throttle(this.cameraSession.setSmoothZoom(this.scaleValue), 500);
+              }
             })
-            .visibility(this.cameraState === cameraState.SCAN ? Visibility.None : Visibility.Visible)
-          Button('扫码')
-            .height('100%')
-            .width(120)
-            .onClick(async () => {
-              this.scanStart()
-            })
-            .visibility(this.cameraState === cameraState.SCAN && this.isScanEnd ? Visibility.Visible : Visibility.None)
-        }
-        .justifyContent(FlexAlign.SpaceAround)
-        .width('100%')
-        .height(40)
+        )
       }
       .width(this.localDisplay?.width + 'px')
       .height(this.localDisplay?.height + 'px')

@@ -103,6 +103,7 @@ export interface NativeVisionCameraProps extends ViewProps {
   onStopped?: BubblingEventHandler<Readonly<{}>>;
   onInitialized?: BubblingEventHandler<Readonly<{}>>;
   onError?: BubblingEventHandler<{ error: string }>;
+  onCodeScanned?: (codes: Code[], frame: CodeScannerFrame) => void;
 }
 
 // export interface Point 
@@ -118,6 +119,7 @@ export interface VisionCameraCommandsType {
   getAvailableCameraDevices(viewRef: React.ElementRef<VisionCameraComponentType>): any;
   takePhoto: (viewRef: React.ElementRef<VisionCameraComponentType>, options?: TakePhotoOptions) => Promise<PhotoFile>;
   focus: (viewRef: React.ElementRef<VisionCameraComponentType>, point: Point) => Promise<void>;
+  setIsActive: (viewRef: React.ElementRef<VisionCameraComponentType>, isActive: boolean) => Promise<void>;
   startRecording: (viewRef: React.ElementRef<VisionCameraComponentType>, options: RecordVideoOptions) => void;
   stopRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;
   pauseRecording: (viewRef: React.ElementRef<VisionCameraComponentType>) => void;
@@ -129,6 +131,7 @@ export const VisionCameraCommands: VisionCameraCommandsType = codegenNativeComma
   supportedCommands: [
     'takePhoto',
     'focus',
+    'setIsActive',
     'startRecording',
     'stopRecording',
     'pauseRecording',

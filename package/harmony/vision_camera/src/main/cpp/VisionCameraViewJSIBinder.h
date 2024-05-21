@@ -21,17 +21,6 @@ class VisionCameraViewJSIBinder : public ViewComponentJSIBinder {
         object.setProperty(rt, "audio", true);
         object.setProperty(rt, "video", true);
         object.setProperty(rt, "torch", true);
-
-        if (object.hasProperty(rt, "codeScanner")) {
-            auto codeScanner = object.getProperty(rt, "codeScanner").asObject(rt);
-            if (codeScanner.hasProperty(rt, "onCodeScan")) {
-                auto onCodeScanValue = codeScanner.getProperty(rt, "onCodeScan");
-                if (onCodeScanValue.isObject()) {
-                    auto onCodeScan = onCodeScanValue.asObject(rt).asFunction(rt);
-                    object.setProperty(rt, "onCodeScan", std::move(onCodeScan));
-                }
-            }
-        }
         
         return object;
     }
@@ -42,7 +31,6 @@ class VisionCameraViewJSIBinder : public ViewComponentJSIBinder {
         events.setProperty(rt, "topStopped", createBubblingCapturedEvent(rt, "onStopped"));
         events.setProperty(rt, "topInitialized", createBubblingCapturedEvent(rt, "onInitialized"));
         events.setProperty(rt, "topError", createBubblingCapturedEvent(rt, "onError"));
-
         events.setProperty(rt, "topCodeScan", createBubblingCapturedEvent(rt, "onCodeScan"));
         return events;
     }

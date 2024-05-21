@@ -72,7 +72,7 @@ export default class PermissionUtils {
             // 用户授权，可以继续访问目标操作
           } else {
             // 用户拒绝授权，提示用户必须授权才能访问当前页面的功能
-            Logger.error(TAG + `defaultGrantPermission  fail ${result.permissions[i]}`);
+            Logger.error(TAG + `defaultGrantPermission  fail ${result.permissions[i]},status:${grantStatus[i]}`);
             return false;
           }
         }

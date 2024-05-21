@@ -3,10 +3,13 @@ import React, {
     useRef,
     forwardRef,
     useImperativeHandle,
+    useEffect,
+    useState,
 } from "react";
 import {
     View,
     StyleSheet,
+    DeviceEventEmitter,
 } from "react-native";
 import NativeVisionCameraView, { VisionCameraCommands } from "./NativeVisionCameraView";
 import type { VisionCameraCommandsType, VisionCameraComponentType } from "./NativeVisionCameraView";
@@ -14,6 +17,9 @@ import type { VisionCameraCommandsType, VisionCameraComponentType } from "./Nati
 import type { NativeSyntheticEvent } from "react-native";
 import { PhotoFile, TakePhotoOptions } from "./types/PhotoFile";
 import { VisionCameraProps } from "./types/Camera";
+import NativeVisionCameraModule from "./NativeVisionCameraModule";
+
+export { NativeVisionCameraModule };
 
 
 // Types
@@ -41,10 +47,12 @@ import { CameraDevicesChangedCallback, CameraDevicesChangedReturn, CameraPermiss
 import { CameraDevice } from "./types/CameraDevice";
 import { Point } from "./types/Point";
 import { RecordVideoOptions } from "./types/VideoFile";
+import { Code, CodeScannerFrame } from "./types/CodeScanner";
 
 type VisionCameraCommands =
     | 'takePhoto'
     | 'focus'
+    | 'setIsActive'
     | 'startRecording'
     | 'stopRecording'
     | 'pauseRecording'
@@ -62,6 +70,7 @@ type VisionCameraCommands =
 export interface VisionCameraRef extends Omit<VisionCameraCommandsType, VisionCameraCommands> {
     takePhoto: (options?: TakePhotoOptions) => Promise<PhotoFile>;
     focus: (point: Point) => Promise<void>;
+    setIsActive: (isActive: boolean) => Promise<void>;
     startRecording: (options: RecordVideoOptions) => void;
     stopRecording: () => void;
     pauseRecording: () => void;
@@ -105,13 +114,16 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
     ) => {
         const VisionCameraRef = useRef<React.ElementRef<VisionCameraComponentType>>(null);
 
-        const takePhoto = useCallback(
-            (options?: TakePhotoOptions) => {
+        const takePhoto = (options?: TakePhotoOptions): Promise<PhotoFile> => {
+            return new Promise((resolve) => {
+                const onCodeScannedListener = DeviceEventEmitter.addListener('onTaskPhoto', (data: PhotoFile) => {
+                    resolve(data);
+                    onCodeScannedListener.remove();
+                });
                 if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
-                return VisionCameraCommands.takePhoto(VisionCameraRef.current, options);
-            },
-            []
-        );
+                VisionCameraCommands.takePhoto(VisionCameraRef.current, options);
+            })
+        };
 
         const focus = useCallback(
             (point: Point) => {
@@ -120,6 +132,16 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
                 return VisionCameraCommands.focus(VisionCameraRef.current, point);
             },
             []
+        );
+
+        const setIsActive = useCallback(
+            (isActive: boolean) => {
+                if (isActive === undefined) throw new Error("VisionCameraCommands isActive is undefined");
+                if (!VisionCameraRef.current) throw new Error("VisionCameraRef.current is NaN");
+                console.log("wswsws useCallback setIsActive", isActive);
+                return VisionCameraCommands.setIsActive(VisionCameraRef.current, isActive);
+            },
+            [isActive]
         );
 
         const startRecording = useCallback(
@@ -254,10 +276,48 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             [onError]
         );
 
+        const onVisionCameraCodeScanned = useCallback(
+            (codes: Code[], frame: CodeScannerFrame) => {
+                if (codeScanner?.onCodeScanned) {
+                    codeScanner.onCodeScanned?.(codes, frame);
+                }
+            },
+            [codeScanner]
+        );
+
+        const [key] = useState(0);
+
+        useEffect(() => {
+            const onInitializedListener = DeviceEventEmitter.addListener('onInitialized', () => {
+                onInitialized?.();
+            });
+            const onStartedListener = DeviceEventEmitter.addListener('onStarted', () => {
+                onStarted?.();
+            });
+            const onStoppedListener = DeviceEventEmitter.addListener('onStopped', () => {
+                onStopped?.();
+            });
+            const onErrorListener = DeviceEventEmitter.addListener('onError', (err) => {
+                onError?.(err);
+            });
+            const onCodeScannedListener = DeviceEventEmitter.addListener('onCodeScanned', (data: { codes: Code[], frame: CodeScannerFrame }) => {
+                codeScanner?.onCodeScanned?.(data.codes, data.frame);
+            });
+            return () => {
+                onInitializedListener.remove();
+                onStartedListener.remove();
+                onStoppedListener.remove();
+                onErrorListener.remove();
+                onCodeScannedListener.remove();
+            }
+
+        })
+
         useImperativeHandle(
             ref,
             () => ({
                 focus,
+                setIsActive,
                 takePhoto,
                 startRecording,
                 stopRecording,
@@ -275,6 +335,7 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             }),
             [
                 focus,
+                setIsActive,
                 takePhoto,
                 startRecording,
                 stopRecording,
@@ -295,14 +356,16 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
         return (
             <View style={style}>
                 <NativeVisionCameraView
+                    key={key}
+                    onCodeScanned={onVisionCameraCodeScanned}
                     ref={VisionCameraRef}
                     style={StyleSheet.absoluteFill}
                     codeScanner={codeScanner}
                     fps={fps}
-                    isActive={false}
-                    preview={preview}
+                    isActive={isActive}
+                    preview={preview === undefined ? true : preview}
                     device={device}
-                    resizeMode={resizeMode}
+                    resizeMode={resizeMode || 'cover'}
                     enableZoomGesture={enableZoomGesture}
                     exposure={exposure}
                     zoom={zoom}

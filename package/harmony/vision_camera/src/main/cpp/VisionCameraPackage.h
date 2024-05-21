@@ -19,13 +19,13 @@ public:
 class VisionCameraEventEmitRequestHandler : public EventEmitRequestHandler {
 public:
     void handleEvent(Context const &ctx) override {
-        auto eventEmitter = ctx.shadowViewRegistry->getEventEmitter<facebook::react::EventEmitter>(ctx.tag);
+        auto eventEmitter = ctx.shadowViewRegistry->getEventEmitter<facebook::react::VisionCameraViewEventEmitter>(ctx.tag);
         if (eventEmitter == nullptr) {
             return;
         }
 
         std::vector<std::string> supportedEventNames = {
-            "started", "stopped", "initialized", "error", "directEvent", "bubblingEvent",
+            "started", "stopped", "onInitialized", "error", "directEvent", "bubblingEvent",
         };
         if (std::find(supportedEventNames.begin(), supportedEventNames.end(), ctx.eventName) !=
             supportedEventNames.end()) {

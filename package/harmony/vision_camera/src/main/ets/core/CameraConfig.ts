@@ -1,5 +1,6 @@
 import { Orientation } from "./CameraEnumBox"
 import { Permissions } from '@kit.AbilityKit';
+import { ErrorWithCause } from '../types/CameraError';
 
 /**
  * VC坐标系(x,y)-> OH坐标系(x/w,y/h)
@@ -7,8 +8,8 @@ import { Permissions } from '@kit.AbilityKit';
  * harmony：焦点应在0-1坐标系内，该坐标系左上角为{0，0}，右下角为{1，1}
  */
 export interface Point {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 
@@ -76,41 +77,41 @@ export interface PhotoFile {
   path: string
 }
 export interface ScanResult {
-    codes: Code[]
-    frame: CodeScannerFrame
+  codes: Code[]
+  frame: CodeScannerFrame
 }
 
 export interface Code {
-    type: string
-    value?: string
-    corners?: Point[]
-    frame?: Frame
+  type: string
+  value?: string
+  corners?: Point[]
+  frame?: Frame
 }
 
 export interface CodeScannerFrame {
-    width: number
-    height: number
+  width: number
+  height: number
 }
 
 export interface Frame {
-    x: number
-    y: number
-    width: number
-    height: number
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 export interface Rect {
-    left: number
-    top: number
-    right: number
-    bottom: number
+  left: number
+  top: number
+  right: number
+  bottom: number
 }
 
 export interface CodeScanner {
-  codeTypes?: CodeType[]
-  onCodeScanned?: (codes?: Code[], frame?: CodeScannerFrame) => void
-  // onCodeScanned?: () => void
+  codeTypes: CodeType[]
+  onCodeScanned: (codes: Code[], frame: CodeScannerFrame) => void
 }
+
 export const PermissionArray: Array<Permissions> = [
   'ohos.permission.CAMERA',
   'ohos.permission.MEDIA_LOCATION',
@@ -124,7 +125,7 @@ export type CameraPermissionStatus = 'granted' | 'not-determined' | 'denied' | '
 export type CameraPermissionRequestResult = 'granted' | 'denied'
 
 export type CodeType =
- | 'code-128'
+  | 'code-128'
   | 'code-39'
   | 'code-93'
   | 'codabar'
@@ -137,3 +138,9 @@ export type CodeType =
   | 'pdf-417'
   | 'aztec'
   | 'data-matrix'
+
+export interface OnErrorEvent {
+  code: string
+  message: string
+  cause?: ErrorWithCause
+}

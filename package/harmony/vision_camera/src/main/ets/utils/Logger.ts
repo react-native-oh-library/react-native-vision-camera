@@ -61,4 +61,4 @@ class Logger {
   }
 }
 
-export default new Logger('RNFastImage', 0xFF00, false)
+export default new Logger('VisionCamera', 0xFF00, false)

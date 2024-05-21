@@ -3,6 +3,8 @@ import CameraManager from "./service/CameraManager";
 import { CameraDeviceInfo } from './core/CameraDeviceInfo';
 import { CameraPermissionRequestResult, CameraPermissionStatus } from './core/CameraConfig';
 import { VisionCameraModuleSpec } from './types/VisionCameraModuleSpec';
+import Logger from './utils/Logger';
+const TAG: string = 'VisionCameraModule:'
 
 export class VisionCameraModule extends TurboModule implements VisionCameraModuleSpec.Spec {
   private cameraManager: CameraManager = new CameraManager();
@@ -12,8 +14,9 @@ export class VisionCameraModule extends TurboModule implements VisionCameraModul
   }
 
   getAvailableCameraDevices(): CameraDeviceInfo[] {
-    let devices = this.cameraManager.getAvailableCameraDevices();
-    return this.cameraManager.convertCameraDeviceInfo(devices);
+    let cameraInfos: CameraDeviceInfo[] = AppStorage.get('CameraDeviceArray');
+    Logger.info(TAG, `initDeviceInfo end CameraDeviceArray size:${cameraInfos.length}`);
+    return cameraInfos;
   }
 
   /**

@@ -6,6 +6,7 @@
 #include <react/renderer/core/ConcreteComponentDescriptor.h>
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
 #include <react/renderer/components/view/ViewShadowNode.h>
+#include "EventEmitters.h"
 
 namespace facebook {
 namespace react {
@@ -23,7 +24,7 @@ class VisionCameraViewProps : public ViewProps {
 using VisionCameraViewShadowNode = ConcreteViewShadowNode<
     VisionCameraViewComponentName,
     VisionCameraViewProps,
-    ViewEventEmitter>;
+    VisionCameraViewEventEmitter>;
 
 class VisionCameraViewComponentDescriptor final
     : public ConcreteComponentDescriptor<VisionCameraViewShadowNode> {
