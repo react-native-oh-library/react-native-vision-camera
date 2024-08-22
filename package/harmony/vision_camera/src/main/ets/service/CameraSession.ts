@@ -473,8 +473,8 @@ export default class CameraSession {
     this.videoUri = `${this.basicPath}/${this.outPathArray[1]}/${Date.now()}.${options.fileType || 'mp4'}`;
     Logger.info(TAG, `recordPrepared videoUri: ${this.videoUri}`);
 
-    // 点击开始录制才询问是否保存到图库,此时options.fileType 是mp4,不是undefined
-    if(options.fileType != undefined) {
+    // 点击开始录制才询问是否保存到图库,此时options.fileType不是undefined
+    if (options.fileType != undefined) {
       this.videoUri =
         await this.getMediaLibraryUri(this.videoUri, `${Date.now()}`, `${options.fileType || 'mp4'}`,
           photoAccessHelper.PhotoType.VIDEO)
@@ -769,10 +769,10 @@ export default class CameraSession {
       ];
       let desFileUris: Array<string> =
         await this.phAccessHelper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
-      Logger.info(TAG,`showAssetsCreationDialog success, data is:${desFileUris}`);
+      Logger.info(TAG, `showAssetsCreationDialog success, data is:${desFileUris}`);
       return desFileUris[0];
     } catch (err) {
-      Logger.error(TAG,`showAssetsCreationDialog failed, errCode is:${err.code},errMsg is:${err.message}`);
+      Logger.error(TAG, `showAssetsCreationDialog failed, errCode is:${err.code},errMsg is:${err.message}`);
     }
   }
 
@@ -782,7 +782,7 @@ export default class CameraSession {
     Logger.info(TAG, `savePicture photoUri: ${photoFile}`);
 
     photoFile =
-      await this.getMediaLibraryUri(photoFile, `${Date.now().toString()}`, 'jpeg', photoAccessHelper.PhotoType.IMAGE)
+      await this.getMediaLibraryUri(photoFile, `${Date.now()}`, 'jpeg', photoAccessHelper.PhotoType.IMAGE)
 
     let file: fs.File;
     try {
