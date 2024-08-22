@@ -769,10 +769,10 @@ export default class CameraSession {
       ];
       let desFileUris: Array<string> =
         await this.phAccessHelper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
-      console.info('showAssetsCreationDialog success, data is ' + desFileUris);
+      Logger.info(TAG,`showAssetsCreationDialog success, data is:${desFileUris}`);
       return desFileUris[0];
     } catch (err) {
-      console.error('showAssetsCreationDialog failed, errCode is ' + err.code + ', errMsg is ' + err.message);
+      Logger.error(TAG,`showAssetsCreationDialog failed, errCode is:${err.code},errMsg is:${err.message}`);
     }
   }
 
@@ -1218,7 +1218,6 @@ export default class CameraSession {
       Logger.info(TAG, `hasAudio${this.hasAudio}`);
     }
   }
-
 
   /**
    * @param options
