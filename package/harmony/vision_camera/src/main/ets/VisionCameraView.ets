@@ -103,8 +103,11 @@ export struct VisionCameraView {
 
     const descriptorBase = this.descriptorWrapper['descriptor'];
     const props = descriptorBase.rawProps;
-    this.localDisplayWidth = typeof props.width === 'number' ? vp2px(props.width) : this.localDisplay?.width;
-    this.localDisplayHeight = typeof props.height === 'number' ? vp2px(props.height) : this.localDisplay?.height;
+    const width = this.descriptorWrapper.width;
+    const height = this.descriptorWrapper.height;
+
+    this.localDisplayWidth = vp2px(width) || this.localDisplay?.width;
+    this.localDisplayHeight = vp2px(height) || this.localDisplay?.height;
     this.enableZoomGesture = props.enableZoomGesture;
     Logger.info(TAG, `descriptorBase.rawProps: ${JSON.stringify(props)}`);
     Logger.info(TAG, `descriptorWrapper: ${JSON.stringify(this.descriptorWrapper)}`);
@@ -138,7 +141,7 @@ export struct VisionCameraView {
     Logger.info(TAG, `aboutToAppear surfaceId:  ${this.surfaceId},cameraState:  ${this.cameraState}`);
     if (this.cameraState === cameraState.SCAN) {
       Logger.info(TAG, `aboutToAppear cameraState:  ${this.cameraState}`);
-      this.scanSession = new ScanSession();
+      this.scanSession = new ScanSession(this.ctx);
       Logger.info(TAG, `aboutToAppear initScan:  ${JSON.stringify(props.codeScanner)}`);
       this.scanSession.initScan(props.codeScanner?.codeTypes);
       this.scanStart(true);

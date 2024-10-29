@@ -26,6 +26,7 @@ import Logger from '../utils/Logger';
 import { BusinessError } from '@ohos.base';
 import { Code, Frame, Point, Rect, ScanResult } from '../core/CameraConfig';
 import { AsyncCallback } from '@kit.BasicServicesKit';
+import { RNOHContext } from '@rnoh/react-native-openharmony/ts';
 
 const TAG: string = 'ScanSession:'
 
@@ -37,8 +38,10 @@ export default class ScanSession {
     ['unknown', 'aztec', 'codabar', 'code-39', 'code-93', 'code-128', 'data-matrix', 'ean-8', 'ean-13', 'itf',
       'pdf-417', 'qr', 'upc-a', 'upc-e']
   private isScanEnd: boolean = true;
+  private ctx!: RNOHContext;
 
-  constructor() {
+  constructor(_ctx?: RNOHContext) {
+    _ctx && (this.ctx = _ctx);
   }
 
   /**
@@ -62,6 +65,7 @@ export default class ScanSession {
       customScan.init(options);
     } catch (error) {
       Logger.error(TAG, `init fail, error:${JSON.stringify(error)}`);
+      this.onError(`init fail, error:${JSON.stringify(error)}`)
     }
   }
 
@@ -212,6 +216,16 @@ export default class ScanSession {
         customScan.closeFlashLight();
         Logger.info(TAG, `setTorch closeFlashLight success`);
       }
+    }
+  }
+  onError(message: string) {
+    Logger.info(TAG, `emitDeviceEvent onError`)
+    if (this.ctx) {
+      this.ctx.rnInstance?.emitDeviceEvent('onError', {
+        nativeEvent: {
+          errorMessage: `${TAG}: ${message}`
+        }
+      });
     }
   }
 }

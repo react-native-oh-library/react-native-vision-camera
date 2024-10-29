@@ -161,6 +161,7 @@ export default class CameraSession {
       let camerasArrayTemp = this.getAvailableCameraDevices();
       if (!camerasArrayTemp) {
         Logger.error(TAG, 'initCamera get getAvailableCameraDevices is empty');
+        this.onError('initCamera get getAvailableCameraDevices is empty')
         return;
       }
     }
@@ -249,6 +250,7 @@ export default class CameraSession {
       await this.videoSession.commitConfig();
     } catch (error) {
       Logger.error(TAG, `initVideoSession commitConfig1 ${JSON.stringify(error)}`);
+      this.onError(`initVideoSession commitConfig1 ${JSON.stringify(error)}`)
     }
 
     if (props.videoHdr) {
@@ -288,6 +290,7 @@ export default class CameraSession {
       await this.photoSession.commitConfig();
     } catch (error) {
       Logger.error(TAG, `initPhotoSession commitConfig error: ${JSON.stringify(error)}`);
+      this.onError(`initPhotoSession commitConfig error: ${JSON.stringify(error)}`)
     }
   }
 
@@ -433,6 +436,7 @@ export default class CameraSession {
       videoOutput = this.cameraManager.createVideoOutput(this.videoProfile, videoSurfaceId);
     } catch (error) {
       Logger.error(TAG, `recordPrepared createVideoOutput.error ${JSON.stringify(error)}`);
+      this.onError(`recordPrepared createVideoOutput.error ${JSON.stringify(error)}`)
     }
     return videoOutput;
   }
@@ -498,6 +502,7 @@ export default class CameraSession {
       }
     } catch (error) {
       Logger.error(TAG, `The activeChange targetSession start call failed. error code: ${error.code}`);
+      this.onError(`The activeChange targetSession start call failed. error code: ${error.code}`)
     }
   }
 
@@ -652,6 +657,7 @@ export default class CameraSession {
       }
     } catch (error) {
       Logger.error(TAG, `releaseCamera end error: ${JSON.stringify(error)}`);
+      this.onError(`releaseCamera end error: ${JSON.stringify(error)}`)
     }
   }
 
@@ -854,6 +860,7 @@ export default class CameraSession {
       await this.photoOutPut.capture(this.photoCaptureSetting);
     } catch (error) {
       Logger.error(TAG, `Failed to capture error: ${error.message},code:${error.code}`);
+      this.onError(`Failed to capture error: ${error.message},code:${error.code}`)
       return;
     }
     await this.waitForPathResult();
@@ -1065,6 +1072,7 @@ export default class CameraSession {
       }
     } catch (error) {
       Logger.error(TAG, `startRecording not init videoFile, error:${JSON.stringify(error)}`);
+      this.onError(`startRecording not init videoFile, error:${JSON.stringify(error)}`)
     }
     if (options.fileType && options.fileType === 'mov') {
       this.ctx &&
@@ -1203,6 +1211,16 @@ export default class CameraSession {
         if (err) {
           Logger.error(TAG, `resumeRecording: Failed to stop the video output. error: ${JSON.stringify(err)}`);
           return;
+        }
+      });
+    }
+  }
+  onError(message: string) {
+    Logger.info(TAG, `emitDeviceEvent onError`)
+    if (this.ctx) {
+      this.ctx.rnInstance?.emitDeviceEvent('onError', {
+        nativeEvent: {
+          errorMessage: `${TAG}: ${message}`
         }
       });
     }
