@@ -688,7 +688,7 @@ export default class CameraSession {
   // 保存图片
   async savePicture(photoAccess: photoAccessHelper.PhotoAsset): Promise<void> {
     let photoFile = `${this.basicPath}/${this.outPathArray[0]}/${Date.now().toString()}.jpeg`;
-    photoFile = await this.getMediaLibraryUri(photoFile, `${Date.now()}`, 'jpeg', photoAccessHelper.PhotoType.IMAGE)
+    // photoFile = await this.getMediaLibraryUri(photoFile, `${Date.now()}`, 'jpeg', photoAccessHelper.PhotoType.IMAGE)
     // 根据相机拍照图片路径，获取文件buffer
     let file = fs.openSync(photoAccess.uri, fs.OpenMode.READ_ONLY);
     let stat = fs.statSync(file.fd);
@@ -713,9 +713,7 @@ export default class CameraSession {
         Logger.error(TAG, `setPhotoOutputCb photoAssetAvailable failed, ${JSON.stringify(err)}`);
         return;
       }
-      const uri = photoAsset.get('uri') as string;
-      this.photoPath = uri;
-      // this.savePicture(photoAsset);
+      this.savePicture(photoAsset);
     });
   }
 
