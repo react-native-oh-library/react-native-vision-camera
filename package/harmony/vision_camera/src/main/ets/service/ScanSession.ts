@@ -48,14 +48,12 @@ export default class ScanSession {
    * 初始化扫描仪
    */
   initScan(types) {
-    Logger.info(TAG, `initScan types:${JSON.stringify(types)}`);
     let type = []
     if (types && types.length > 0) {
       type = types.map((item) => {
         return this.codeType.indexOf(item)
       })
     }
-    Logger.info(TAG, `init:type:${JSON.stringify(type)}`);
     let options: scanBarcode.ScanOptions = {
       scanTypes: type || [scanCore.ScanType.ALL],
       enableMultiMode: true,
@@ -73,15 +71,10 @@ export default class ScanSession {
    * 启动相机进行扫码
    */
   async scanStart(surfaceId: string, SurfaceRect, isFirst: boolean, isAction: boolean, callback: AsyncCallback<Array<scanBarcode.ScanResult>>): Promise<void> {
-    Logger.info(TAG, `ScanStart:surfaceId: ${surfaceId}`)
-    Logger.info(TAG, `ScanStart:SurfaceRect: ${JSON.stringify(SurfaceRect)}`)
-    Logger.info(TAG, `ScanStart:isFirst: ${isFirst}`)
-    Logger.info(TAG, `ScanStart:this.isScanEnd: ${this.isScanEnd}`)
     if (this.isScanEnd) {
       this.setEndStatus(false)
       // 获取到扫描结果后暂停相机流
       if (!isFirst) {
-        Logger.info(TAG, `ScanStart:start.stop`)
         this.scanStop()
       }
       this.ScanFrame = SurfaceRect;
@@ -91,7 +84,6 @@ export default class ScanSession {
         height: SurfaceRect.height,
         surfaceId: surfaceId
       };
-      Logger.info(TAG, `start viewControl, info: ${JSON.stringify(viewControl)}`);
       customScan.start(viewControl, callback);
     }
   }
@@ -146,7 +138,6 @@ export default class ScanSession {
         codes: codes,
         frame: this.ScanFrame
       }
-      Logger.info(TAG, `scan self result: ${JSON.stringify(scanResult)}`);
       return scanResult
     }
     return null
@@ -166,7 +157,6 @@ export default class ScanSession {
           width: scanFrame.width,
           height: scanFrame.height
         }
-        Logger.info(TAG, `start frame succeeded, ${JSON.stringify(scanFrame)}`);
       }
     }
 
@@ -180,7 +170,6 @@ export default class ScanSession {
   async scanStop() {
     try {
       customScan.stop().then(() => {
-        Logger.info(TAG, 'stop success!');
       }).catch((error: BusinessError) => {
         Logger.error(TAG, `stop try failed error: ${JSON.stringify(error)}`);
       })
@@ -195,7 +184,6 @@ export default class ScanSession {
   async scanRelease() {
     try {
       customScan.release().then(() => {
-        Logger.info(TAG, 'release success!');
       }).catch((error: BusinessError) => {
         Logger.error(TAG, `release failed error: ${JSON.stringify(error)}`);
       })
@@ -205,21 +193,17 @@ export default class ScanSession {
   }
 
   setTorch(torch: string) {
-    Logger.info(TAG, `setTorch start,isTorch: ${torch}`);
     let isTorch: boolean = torch === 'on';
     let status = customScan.getFlashLightStatus();
     if (status !== isTorch) {
       if (isTorch) {
         customScan.openFlashLight();
-        Logger.info(TAG, `setTorch openFlashLight success`);
       } else {
         customScan.closeFlashLight();
-        Logger.info(TAG, `setTorch closeFlashLight success`);
       }
     }
   }
   onError(message: string) {
-    Logger.info(TAG, `emitDeviceEvent onError`)
     if (this.ctx) {
       this.ctx.rnInstance?.emitDeviceEvent('onError', {
         nativeEvent: {

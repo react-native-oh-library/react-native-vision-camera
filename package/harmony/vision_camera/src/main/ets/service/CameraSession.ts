@@ -387,6 +387,17 @@ export default class CameraSession {
     } else if (typeof options.videoBitRate === 'string') {
       videoBitRate = this.getBitRateMultiplier(options.videoBitRate)
     }
+    let fps = props.fps | 30;
+    let { min:minFps, max:maxFps } = this.videoProfile.frameRateRange;
+    if (fps > maxFps) {
+      fps = maxFps;
+      this.onError('The fps exceeds the maximum value.')
+    } else if (fps < minFps) {
+      fps = minFps;
+      this.onError('The fps is lower than the minimum value.')
+    }
+
+
     let audioConfig = {
       audioChannels: 2,
       audioCodec: media.CodecMimeType.AUDIO_AAC,
@@ -395,24 +406,17 @@ export default class CameraSession {
     }
     let videoConfig: media.AVRecorderProfile = {
       fileFormat: media.ContainerFormatType.CFT_MPEG_4,
-      // videoBitrate: videoBitRate * 70_000_000,
       videoBitrate: 512000,
       videoCodec: options.videoCodec === 'h265' ? media.CodecMimeType.VIDEO_HEVC : media.CodecMimeType.VIDEO_AVC,
       videoFrameWidth: this.videoSize.width,
       videoFrameHeight: this.videoSize.height,
-      videoFrameRate: props.fps ? props.fps : 30,
+      videoFrameRate: fps,
       isHdr: props.videoHdr ? props.videoHdr : false
     };
     let videoConfigProfile: media.AVRecorderProfile = this.hasAudio ? {
       ...audioConfig, ...videoConfig
     } : videoConfig
     this.videoUri = `${this.basicPath}/${this.outPathArray[1]}/${Date.now()}.${options.fileType || 'mp4'}`;
-    // 点击开始录制才询问是否保存到图库,此时options.fileType不是undefined
-    // if (options.fileType != undefined) {
-    //   this.videoUri =
-    //     await this.getMediaLibraryUri(this.videoUri, `${Date.now()}`, `${options.fileType || 'mp4'}`,
-    //       photoAccessHelper.PhotoType.VIDEO)
-    // }
     this.videoFile = fs.openSync(this.videoUri, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
     let aVAudio = {
       audioSourceType: media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC
@@ -429,7 +433,12 @@ export default class CameraSession {
     let aVRecorderConfig: media.AVRecorderConfig = this.hasAudio ? {
       ...aVAudio, ...aVVideo
     } : aVVideo;
-    await this.avRecorder.prepare(aVRecorderConfig);
+    try {
+      await this.avRecorder.prepare(aVRecorderConfig);
+    } catch (error) {
+      Logger.error(TAG, `avRecorder.prepare.error ${JSON.stringify(error)}`);
+    }
+
     let videoSurfaceId = await this.avRecorder.getInputSurface();
     let videoOutput: camera.VideoOutput;
     try {
@@ -633,27 +642,34 @@ export default class CameraSession {
     try {
       if (this.cameraInput) {
         await this.cameraInput.close();
+        this.cameraInput = undefined;
       }
       if (this.previewOutput) {
         await this.previewOutput.release();
+        this.previewOutput = undefined;
       }
       if (this.photoOutPut) {
         await this.photoOutPut.release();
+        this.photoOutPut = undefined;
       }
       if (this.videoOutput) {
         await this.videoOutput.release();
+        this.videoOutput = undefined
       }
       if (this.photoSession) {
         await this.photoSession.release();
+        this.photoSession = undefined
       }
       if (this.videoSession) {
         await this.videoSession.release();
+        this.videoSession = undefined
       }
       if (this.videoFile && this.videoFile.fd) {
         fs.closeSync(this.videoFile);
       }
       if (this.avRecorder) {
         await this.avRecorder.release();
+        this.avRecorder = undefined
       }
     } catch (error) {
       Logger.error(TAG, `releaseCamera end error: ${JSON.stringify(error)}`);
@@ -696,13 +712,14 @@ export default class CameraSession {
     fs.readSync(file.fd, buffer);
     fs.fsyncSync(file.fd);
     fs.closeSync(file);
+    let _file;
     try {
-      file = fs.openSync(photoFile, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-      await fs.write(file.fd, buffer);
+      _file = fs.openSync(photoFile, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+      await fs.write(_file.fd, buffer);
     } catch (error) {
       Logger.error(TAG, `savePicture statSync failed,code:${error}.`);
     }
-    fs.closeSync(file);
+    fs.closeSync(_file);
     this.photoPath = photoFile;
   }
 
@@ -1058,95 +1075,45 @@ export default class CameraSession {
     }
   }
 
+  setVideoFlashMode(mode: string) {
+    let hasFlash = this.videoSession.hasFlash();
+    if (!hasFlash) {
+      this.onError('The device does not support the flash memory.');
+    }
+    if (mode === 'on' &&
+    this.videoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_ALWAYS_OPEN)) {
+      this.videoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_ALWAYS_OPEN);
+    } else if (mode === 'off' &&
+    this.videoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_CLOSE)) {
+      this.videoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_CLOSE);
+    }
+  }
+
   /**
    * @param options
    * 开始录制
    */
   async startRecording(options: RecordVideoOptions, props: VisionCameraViewSpec.RawProps) {
+    if (options.fileType && options.fileType !== media.ContainerFormatType.CFT_MPEG_4) {
+      this.onError('Video file encapsulation format. Only MP4 is supported.');
+    }
+    this.setVideoFlashMode(options.flash);
 
     try {
-      if (await fs.access(this.videoFile?.path)) {
-        await fs.unlink(this.videoFile?.path);
-      }
+      await this.avRecorder.start();
     } catch (error) {
-      Logger.error(TAG, `startRecording not init videoFile, error:${JSON.stringify(error)}`);
-      this.onError(`startRecording not init videoFile, error:${JSON.stringify(error)}`)
+      Logger.error(TAG, 'startRecording catch Failed to start recording.' + JSON.stringify(error))
+      this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
+        new CameraCaptureError('capture/recording-in-progress', 'Failed to start recording.'));
     }
-    if (options.fileType && options.fileType === 'mov') {
-      this.ctx &&
-      this.ctx.rnInstance.emitDeviceEvent('onRecordingError', new CameraCaptureError('capture/no-recording-in-progress',
-        'the system does not support the MOV format.'));
-      return;
-    }
-
-    let rateRange = this.videoProfile.frameRateRange;
-    if (rateRange && props.fps) {
-      if (rateRange.min <= props.fps && rateRange.max >= props.fps) {
-      } else {
-        this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
-          new CameraCaptureError('capture/no-recording-in-progress',
-            `FPS should be in (${rateRange.min}-${rateRange.max})`));
-        return;
-      }
-    }
-    if (props.videoHdr && options.videoCodec === 'h264') {
-      Logger.error(TAG, `recordPrepared rateRange, props videoHdr:${props.videoHdr},videoCodec:${options.videoCodec}`);
-      this.ctx &&
-      this.ctx.rnInstance.emitDeviceEvent('onRecordingError', new CameraCaptureError('capture/encoder-error',
-        'the encoding formats of videoHdr and videoCodec do not match.'));
-      return;
-    }
-    if (this.avRecorder.state === 'prepared' || this.avRecorder.state === 'idle' ||
-      this.avRecorder.state === 'released') {
-      if (this.avRecorder.state !== 'released') {
-        await this.avRecorder.release();
-      }
-      if (options.videoCodec && options.videoCodec !== this.videoCodeC) {
-        this.videoCodeC = options.videoCodec;
-      }
-      if (this.avRecorder.state === 'released') {
-        let videoOutput: camera.VideoOutput = await this.recordPrepared(options, props)
-        this.videoSession.beginConfig();
-        if (this.videoOutput) {
-          this.videoSession?.removeOutput(this.videoOutput);
-          await this.videoOutput.release();
-        }
-        this.videoOutput = videoOutput;
-        this.videoSession.addOutput(this.videoOutput);
-        let colorSpace =
-          props?.videoHdr ? colorSpaceManager.ColorSpace.BT2020_HLG_LIMIT : colorSpaceManager.ColorSpace.BT709_LIMIT;
-        this.videoSession?.setColorSpace(colorSpace);
-        await this.videoSession.commitConfig();
-        await this.setVideoStabilizationMode(true);
-        await this.videoSession.start();
-
-      }
-      if (this.videoSession.hasFlash()) {
-        if (options.flash === 'on' &&
-        this.videoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_ALWAYS_OPEN)) {
-          this.videoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_ALWAYS_OPEN);
-        } else if (options.flash === 'off' &&
-        this.videoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_CLOSE)) {
-          this.videoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_CLOSE);
-        }
-      }
-      const vsMode = this.videoSession.getActiveVideoStabilizationMode();
-      try {
-        await this.avRecorder.start();
-      } catch (error) {
-        Logger.error(TAG, 'startRecording catch Failed to start recording.' + JSON.stringify(error))
+    this.videoOutput.start((err: BusinessError) => {
+      if (err) {
+        Logger.error(TAG, 'startRecording videoOutput.start Failed to start recording.' + JSON.stringify(err))
         this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
           new CameraCaptureError('capture/recording-in-progress', 'Failed to start recording.'));
+        return;
       }
-      this.videoOutput.start((err: BusinessError) => {
-        if (err) {
-          Logger.error(TAG, 'startRecording videoOutput.start Failed to start recording.' + JSON.stringify(err))
-          this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
-            new CameraCaptureError('capture/recording-in-progress', 'Failed to start recording.'));
-          return;
-        }
-      });
-    }
+    });
   }
 
   /**
@@ -1213,8 +1180,8 @@ export default class CameraSession {
       });
     }
   }
+
   onError(message: string) {
-    Logger.info(TAG, `emitDeviceEvent onError`)
     if (this.ctx) {
       this.ctx.rnInstance?.emitDeviceEvent('onError', {
         nativeEvent: {

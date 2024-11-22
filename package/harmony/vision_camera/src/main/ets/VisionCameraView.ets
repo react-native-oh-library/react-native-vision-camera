@@ -89,8 +89,6 @@ export struct VisionCameraView {
 
   aboutToAppear() {
     this.localDisplay = display.getDefaultDisplaySync();
-
-    Logger.info(TAG, `localDisplay  ${JSON.stringify(this.localDisplay)}`);
     this.eventEmitter = new VisionCameraViewSpec.EventEmitter(this.ctx.rnInstance, this.tag)
     this.onDescriptorWrapperChange(this.ctx.descriptorRegistry.findDescriptorWrapperByTag<VisionCameraViewSpec.DescriptorWrapper>(this.tag)!)
     this.cleanUpCallbacks.push(this.ctx.descriptorRegistry.subscribeToDescriptorChanges(this.tag,
@@ -109,14 +107,10 @@ export struct VisionCameraView {
     this.localDisplayWidth = vp2px(width) || this.localDisplay?.width;
     this.localDisplayHeight = vp2px(height) || this.localDisplay?.height;
     this.enableZoomGesture = props.enableZoomGesture;
-    Logger.info(TAG, `descriptorBase.rawProps: ${JSON.stringify(props)}`);
-    Logger.info(TAG, `descriptorWrapper: ${JSON.stringify(this.descriptorWrapper)}`);
     this.registerCommandCallback();
 
-    Logger.info(TAG, `props.registerCommandCallback end`);
     if (props.codeScanner) {
       this.cameraState = cameraState.SCAN;
-      Logger.info(TAG, `props.codeScanner ${JSON.stringify(props.codeScanner)}`);
     }
     if (props.photo) {
       this.cameraState = cameraState.PHOTO;
@@ -126,7 +120,6 @@ export struct VisionCameraView {
     if (props.androidPreviewViewType && props.androidPreviewViewType !== `${this.androidPreviewViewType}-view`) {
       this.androidPreviewViewType = previewViewType[`${props.androidPreviewViewType}`];
     }
-    Logger.info(TAG, `defaultGrantPermission before`);
     this.defaultGrantPermission(props).then(res => {
       this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
       this.initSession(props);
@@ -138,11 +131,8 @@ export struct VisionCameraView {
    * 初始化Session
    */
   initSession(props: VisionCameraViewSpec.RawProps) {
-    Logger.info(TAG, `aboutToAppear surfaceId:  ${this.surfaceId},cameraState:  ${this.cameraState}`);
     if (this.cameraState === cameraState.SCAN) {
-      Logger.info(TAG, `aboutToAppear cameraState:  ${this.cameraState}`);
       this.scanSession = new ScanSession(this.ctx);
-      Logger.info(TAG, `aboutToAppear initScan:  ${JSON.stringify(props.codeScanner)}`);
       this.scanSession.initScan(props.codeScanner?.codeTypes);
       this.scanStart(true);
     } else {
@@ -172,10 +162,8 @@ export struct VisionCameraView {
     }
     try {
       const res = await new PermissionUtils().defaultGrantPermission(permissions);
-      Logger.info(TAG, `defaultGrantPermission success: ${JSON.stringify(res)}`);
       return res;
     } catch (e) {
-      Logger.info(TAG, `defaultGrantPermission failed: ${JSON.stringify(e)}`);
       throw (new Error(e))
     }
   }
@@ -184,16 +172,12 @@ export struct VisionCameraView {
    * 订阅生命周期监听事件
    */
   subscribeToLifecycleEvents() {
-    Logger.info(TAG, `subscribeToLifecycleEvents start`);
     this.callbackList.push(this.ctx.rnInstance.subscribeToLifecycleEvents("FOREGROUND", () => {
-      Logger.info(TAG, `subscribeToLifecycleEvents FOREGROUND`);
       const props = this.descriptorWrapper['descriptor'].rawProps;
       if (this.cameraState === cameraState.SCAN) {
         setTimeout(() => {
           this.scanSession = new ScanSession();
           this.scanSession.initScan(props.codeScanner?.codeTypes);
-          Logger.info(TAG,
-            `subscribeToLifecycleEvents FOREGROUND scanSession initScan, ${JSON.stringify(this.scanSession)}`);
           if (props.isActive) {
             this.scanStart(true);
           }
@@ -205,8 +189,6 @@ export struct VisionCameraView {
           this.cameraSession.initCamera(this.surfaceId, props, mediaModel)
           this.cameraSession.setResizeMode(props.resizeMode, this.localDisplayWidth, this.localDisplayHeight,
             (width, height) => {
-              Logger.info(TAG, `componentWidth ${width}`);
-              Logger.info(TAG, `componentHeight ${height}`);
               this.componentWidth = width;
               this.componentHeight = height;
             });
@@ -217,82 +199,55 @@ export struct VisionCameraView {
     })
     )
     this.callbackList.push(this.ctx.rnInstance.subscribeToLifecycleEvents("BACKGROUND", async () => {
-      Logger.info(TAG, `subscribeToLifecycleEvents BACKGROUND`);
       if (this.cameraState === cameraState.SCAN) {
         clearTimeout(this.timer)
         await this.scanSession.scanStop();
         this.scanSession.scanRelease();
-        Logger.info(TAG, `subscribeToLifecycleEvents BACKGROUND , ${JSON.stringify(this.scanSession)}`);
-      }else {}
+      }else {
+        this.cameraSession.cameraRelease()
+      }
     }))
-
-    this.ctx.rnInstance.subscribeToLifecycleEvents("CONFIGURATION_UPDATE", () => {
-      Logger.info(TAG, `subscribeToLifecycleEvents CONFIGURATION_UPDATE`);
-    })
-    this.ctx.rnInstance.subscribeToLifecycleEvents("JS_BUNDLE_EXECUTION_FINISH", () => {
-      Logger.info(TAG, `subscribeToLifecycleEvents JS_BUNDLE_EXECUTION_FINISH`);
-    })
-    this.ctx.rnInstance.subscribeToLifecycleEvents("RELOAD", () => {
-      Logger.info(TAG, `subscribeToLifecycleEvents RELOAD`);
-    })
-    this.ctx.rnInstance.subscribeToLifecycleEvents("WINDOW_SIZE_CHANGE", () => {
-      Logger.info(TAG, `subscribeToLifecycleEvents WINDOW_SIZE_CHANGE`);
-    })
-    Logger.info(TAG, `subscribeToLifecycleEvents end`);
   }
 
   //更新props
   updateProps(props: VisionCameraViewSpec.RawProps) {
-    Logger.info(TAG, `updateProps, props:${JSON.stringify(props)}`);
     this.defaultGrantPermission(props);
     if (props.isActive !== undefined && this.prevProps?.isActive !== props.isActive) {
-      Logger.info(TAG, `updateProps, activeChange: ${props.isActive}`);
       this.cameraSession.activeChange(props.isActive);
       if (props.isActive) {
-        Logger.info(TAG, `emitDeviceEvent, onCameraStarted`);
         this.ctx.rnInstance.emitDeviceEvent('onCameraStarted', {});
       } else {
-        Logger.info(TAG, `emitDeviceEvent, onCameraStopped`);
         this.ctx.rnInstance.emitDeviceEvent('onCameraStopped', {});
       }
     }
     if (props.audio !== undefined && this.prevProps?.audio !== props.audio) {
-      Logger.info(TAG, `updateProps, audioChange: ${props.audio}`);
       this.cameraSession.setAudio(props.audio);
     }
     if (props.preview !== undefined && this.prevProps?.preview !== props.preview) {
-      Logger.info(TAG, `updateProps, previewChange: ${props.preview}`);
       this.cameraSession.previewChange(props.preview);
     }
     if (props.enableZoomGesture !== undefined && this.prevProps?.enableZoomGesture !== props.enableZoomGesture) {
-      Logger.info(TAG, `updateProps, enableZoomGesture: ${props.enableZoomGesture}`);
       this.enableZoomGesture = props.enableZoomGesture;
     }
     if (props.exposure !== undefined && this.prevProps?.exposure !== props.exposure) {
-      Logger.info(TAG, `updateProps, setExposure: ${props.exposure}`);
       this.cameraSession.setExposure(props.exposure);
     }
     if (props.zoom !== undefined && this.prevProps?.zoom !== props.zoom) {
-      Logger.info(TAG, `updateProps, setSmoothZoom: ${props.zoom}`);
       this.cameraSession.setSmoothZoom(props.zoom);
     }
     if (props.torch !== undefined && this.prevProps?.torch !== props.torch) {
-      Logger.info(TAG, `updateProps, setTorch: ${props.torch}`);
       this.cameraSession.setTorch(props.torch)
     }
     if (props.photoQualityBalance !== undefined && this.prevProps?.photoQualityBalance !== props.photoQualityBalance) {
       this.cameraSession.setPhotoQualitySetting(props.photoQualityBalance);
-      Logger.info(TAG, `photoQualityBalance update:${props.photoQualityBalance}.`)
     }
     if (props.enableLocation !== undefined && this.prevProps?.enableLocation !== props.enableLocation) {
       this.cameraSession.setPhotoLocationSetting(props.enableLocation);
-      Logger.info(TAG, `enableLocation update:${props.enableLocation}.`)
     }
     if (props.androidPreviewViewType && this.prevProps?.androidPreviewViewType !== props.androidPreviewViewType) {
       this.androidPreviewViewType = previewViewType[`${props.androidPreviewViewType}`];
     }
     if (props.videoHdr !== undefined && this.prevProps?.videoHdr !== props.videoHdr) {
-      Logger.info(TAG, `videoHdr update:${props.videoHdr}.`)
       if (props.videoHdr !== undefined && props.videoStabilizationMode !== VideoStabilizationMode.AUTO) {
         this.onError(new CameraRuntimeError('unknown/unknown', 'props.videoStabilizationMode must be auto'))
         return;
@@ -305,35 +260,28 @@ export struct VisionCameraView {
         this.onError(new CameraRuntimeError('unknown/unknown', 'props.videoHdr must be false'))
         return;
       }
-      Logger.info(TAG, `updateProps, videoStabilizationModeChange: ${props.videoStabilizationMode}`);
       this.cameraSession.setVideoStabilizationMode(false, props.videoStabilizationMode);
     }
     this.cameraSession.setResizeMode(props.resizeMode, this.localDisplayWidth, this.localDisplayHeight,
       (width, height) => {
         this.componentWidth = width;
         this.componentHeight = height;
-        Logger.info(TAG, `setResizeMode: ${width},${height}`);
       });
 
     this.pageFlag = !this.pageFlag;
   }
 
   private onDescriptorWrapperChange(descriptorWrapper: VisionCameraViewSpec.DescriptorWrapper) {
-    Logger.info(TAG, `onDescriptorWrapperChange  ${JSON.stringify(descriptorWrapper)}`);
     this.descriptorWrapper = descriptorWrapper;
     const descriptorBase = descriptorWrapper['descriptor'];
     const props = descriptorBase.rawProps;
     this.currentProps = props;
-    Logger.info(TAG, `currentProps: ${JSON.stringify(this.currentProps)}`)
     if (this.cameraState !== cameraState.SCAN && !Utils.isEmptyObject(this.cameraSession)) {
-      Logger.info(TAG, `updateProps cameraSession`);
       this.updateProps(props);
     }
     if (this.cameraState === cameraState.SCAN && !Utils.isEmptyObject(this.scanSession)) {
-      Logger.info(TAG, `updateProps scanSession`);
       const isActiveChange = props.isActive !== undefined && this.prevProps?.isActive !== props.isActive;
       if (isActiveChange) {
-        Logger.info(TAG, `Scan updateProps, isActive: ${props.isActive}`);
         if (props.isActive) {
           this.scanStart(true);
         } else {
@@ -342,7 +290,6 @@ export struct VisionCameraView {
         }
       }
       if (props.torch !== undefined && this.prevProps?.torch !== props.torch) {
-        Logger.info(TAG, `updateProps, setTorch: ${props.torch}`);
         this.scanSession.setTorch(props.torch);
       }
     }
@@ -351,7 +298,6 @@ export struct VisionCameraView {
 
   async aboutToDisappear() {
     this.cleanUpCallbacks.forEach(cb => cb())
-    Logger.info(TAG, 'aboutToDisappear begin');
     if (this.cameraState === cameraState.SCAN) {
       clearTimeout(this.timer)
       await this.scanSession.scanStop();
@@ -383,7 +329,6 @@ export struct VisionCameraView {
                   `When preview is set to false, the photo can be taken only once.`));
               }
             } else {
-              Logger.info(TAG, `props photo error, photo:${JSON.stringify(this.currentProps.photo)}`);
             }
           }
           if (command === 'focus') {
@@ -451,13 +396,10 @@ export struct VisionCameraView {
   }
 
   onInitialized() {
-    Logger.info(TAG, `emitDeviceEvent onInitialized`)
     this.ctx.rnInstance.emitDeviceEvent('onInitialized', {});
-    Logger.info(TAG, `emitDeviceEvent onInitialized end`)
   }
 
   onError(cameraError: CameraRuntimeError) {
-    Logger.info(TAG, `emitDeviceEvent onError`)
     this.ctx.rnInstance.emitDeviceEvent('onError', cameraError);
   }
 
