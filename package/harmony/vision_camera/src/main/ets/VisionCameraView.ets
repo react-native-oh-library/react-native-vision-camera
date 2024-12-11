@@ -96,9 +96,7 @@ export struct VisionCameraView {
         this.onDescriptorWrapperChange(newDescriptorWrapper! as VisionCameraViewSpec.DescriptorWrapper)
       }
     ))
-
     this.subscribeToLifecycleEvents();
-
     const descriptorBase = this.descriptorWrapper['descriptor'];
     const props = descriptorBase.rawProps;
     const width = this.descriptorWrapper.width;
@@ -212,6 +210,10 @@ export struct VisionCameraView {
   //更新props
   updateProps(props: VisionCameraViewSpec.RawProps) {
     this.defaultGrantPermission(props);
+    this.cameraSession.changeCameraPosition({
+      surfaceId: this.surfaceId, props,
+      mediaModel: this.cameraState === cameraState.PHOTO ? camera.SceneMode.NORMAL_PHOTO : camera.SceneMode.NORMAL_VIDEO
+    })
     if (props.isActive !== undefined && this.prevProps?.isActive !== props.isActive) {
       this.cameraSession.activeChange(props.isActive);
       if (props.isActive) {

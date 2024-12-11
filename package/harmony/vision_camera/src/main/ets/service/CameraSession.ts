@@ -82,7 +82,7 @@ export default class CameraSession {
   private hasAudio: boolean = false
   private ctx!: RNOHContext;
   private videoCodeC: 'h264' | 'h265' = 'h265'
-
+  private cameraDeviceIndex: number = 0;
   public ZoomRange: ZoomRangeType | null = null;
   public photoPreviewScale: number = 1;
   public previewProfile: camera.Profile = {} as camera.Profile;
@@ -145,6 +145,34 @@ export default class CameraSession {
     }
   }
 
+  async changeCameraPosition(config: {
+    surfaceId: string, props: VisionCameraViewSpec.RawProps,
+    mediaModel: camera.SceneMode
+  }) {
+    const { surfaceId, props, mediaModel } = config;
+    let cameraIndex = 0;
+    props.device?.position === 'front' ? cameraIndex = 1 : cameraIndex = 0;
+    if (this.cameraDeviceIndex === cameraIndex) {
+      return;
+    }
+    await this.cameraRelease();
+    Logger.info(TAG, `changeCameraPosition: ${JSON.stringify(props.device?.position)}`);
+    this.cameraManager = this.getCameraManagerFn();
+    this.initCamera(surfaceId, props, mediaModel)
+  }
+
+  getCameraManagerFn(): camera.CameraManager | undefined {
+    let cameraManager: camera.CameraManager | undefined = undefined;
+    try {
+      cameraManager = camera.getCameraManager(this.context);
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(TAG, `getCameraManager failed: ${JSON.stringify(err)}`);
+      this.onError(`getCameraManager failed: ${JSON.stringify(err)}`)
+    }
+    return cameraManager;
+  }
+
   /**
    * 初始化相机
    * @param surfaceId
@@ -165,10 +193,8 @@ export default class CameraSession {
         return;
       }
     }
-    let currentDevice = this.camerasArray.find(d => d.cameraId === props.device?.id);
-    if (!currentDevice) {
-      currentDevice = this.camerasArray[0];
-    }
+    this.cameraDeviceIndex = this.camerasArray?.findIndex(d => d.cameraId === props.device?.id);
+    let currentDevice = this.camerasArray[this.cameraDeviceIndex || 0]
     if (this.mediaModel === camera.SceneMode.NORMAL_PHOTO) {
       await this.initPhotoSession(currentDevice, surfaceId, props);
       await this.photoSession.start();
