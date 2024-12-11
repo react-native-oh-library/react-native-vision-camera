@@ -493,28 +493,24 @@ export default class CameraSession {
 
 
   //设置预览样式 cover/contain
-  setResizeMode(resizeMode: string, displayWidth: number = 1216, displayHeight: number = 2688,
+  setResizeMode(_resizeMode: string, displayWidth: number = 1216, displayHeight: number = 2688,
     callback: (width: number, height: number) => void) {
     let previewSize = this.previewProfile.size
     let screenAspect = displayWidth / displayHeight;
     let previewAspect = previewSize.height / previewSize.width;
     let componentWidth: number = 0;
     let componentHeight: number = 0;
+    let resizeMode = _resizeMode ?? 'cover';
     if (resizeMode === 'cover') {
-      if (screenAspect >= previewAspect) {
-        componentWidth = displayWidth;
-        componentHeight = displayWidth / previewAspect;
-      } else {
-        componentWidth = displayHeight * previewAspect;
-        componentHeight = displayHeight;
-      }
+      componentWidth = displayWidth;
+      componentHeight = displayHeight
     } else if (resizeMode === 'contain') {
       if (screenAspect >= previewAspect) {
         componentWidth = displayHeight * previewAspect;
         componentHeight = displayHeight;
       } else {
-        componentWidth = displayWidth;
-        componentHeight = displayWidth / previewAspect;
+        componentWidth = displayHeight / previewAspect;
+        componentHeight = displayHeight;
       }
     }
     // 计算设备左上角与预览流左上角偏移量

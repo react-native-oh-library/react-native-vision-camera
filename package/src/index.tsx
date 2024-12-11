@@ -30,7 +30,7 @@ import React, {
 } from "react";
 import {
     View,
-    DeviceEventEmitter,
+    DeviceEventEmitter,StyleSheet
 } from "react-native";
 import NativeVisionCameraView, { VisionCameraCommands } from "./NativeVisionCameraView";
 import type { VisionCameraCommandsType, VisionCameraComponentType } from "./NativeVisionCameraView";
@@ -470,11 +470,11 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
         );
 
         return (
-            <View onTouchEnd={onVisionCameraTouchEnd}>
+            <View onTouchEnd={onVisionCameraTouchEnd} style={style} >
                 <NativeVisionCameraView
                     onCodeScanned={onVisionCameraCodeScanned}
                     ref={VisionCameraRef}
-                    style={style}
+                    style={StyleSheet.absoluteFill}
                     codeScanner={codeScanner}
                     fps={fps}
                     videoHdr={videoHdr}
