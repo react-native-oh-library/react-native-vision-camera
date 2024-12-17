@@ -1,6 +1,6 @@
 # react-native-vision-camera
 
-This project is based on [react-native-vision-camera](https://github.com/react-native-oh-library/react-native-vision-camera)
+This project is based on [react-native-vision-camera](https://github.com/mrousavy/react-native-vision-camera)
 
 ## Documentation
 

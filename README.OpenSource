@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "react-native-vision-camera",
+        "License": "MIT License",
+        "License File": "https://github.com/mrousavy/react-native-vision-camera/blob/main/LICENSE",
+        "Version Number": "4.6.3",
+		"Owner" : "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mrousavy/react-native-vision-camera",
+        "Description": "VisionCamera is a powerful, high-performance Camera library for React Native"
+    }
+]
