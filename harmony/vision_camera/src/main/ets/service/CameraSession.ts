@@ -24,7 +24,7 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit';
 
 declare function getContext(component?: Object | undefined): Context;
 
-const TAG: string = 'CameraSession:'
+const TAG: string = 'RNCameraSession'
 
 type ZoomRangeType = [number, number];
 
@@ -46,7 +46,7 @@ export default class CameraSession {
   private previewOutput: camera.PreviewOutput = undefined;
   private photoOutPut?: camera.PhotoOutput;
   private photoProfile?: camera.Profile;
-  private preSurfaceId: string;
+  private preViewSurfaceId: string;
 
   private videoOutput?: camera.VideoOutput;
   private videoProfile: camera.VideoProfile;
@@ -132,6 +132,7 @@ export default class CameraSession {
     surfaceId: string, props: VisionCameraViewSpec.RawProps,
     mediaModel: camera.SceneMode
   }) {
+    Logger.info(TAG, `changeCameraPosition`);
     const { surfaceId, props, mediaModel } = config;
     let cameraIndex = 0;
     props.device?.position === 'front' ? cameraIndex = 1 : cameraIndex = 0;
@@ -162,7 +163,7 @@ export default class CameraSession {
    */
   async initCamera(surfaceId: string, props: VisionCameraViewSpec.RawProps,
     mediaModel: camera.SceneMode): Promise<void> {
-    this.preSurfaceId = surfaceId;
+    this.preViewSurfaceId = surfaceId;
     this.mediaModel = mediaModel
     if (!this.cameraManager) {
       Logger.error(TAG, 'initCamera check cameraManager is empty');
@@ -330,7 +331,7 @@ export default class CameraSession {
         this.videoSession?.removeOutput(this.previewOutput);
         await this.previewOutput.release();
       }
-      let localPreviewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, this.preSurfaceId);
+      let localPreviewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, this.preViewSurfaceId);
       this.previewOutput = localPreviewOutput;
       this.videoSession?.addOutput(localPreviewOutput);
 
@@ -366,7 +367,7 @@ export default class CameraSession {
         await targetSession?.start();
       } else {
         this.previewProfile = this.capability.previewProfiles[this.capability.previewProfiles.length - 1];
-        this.previewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, this.preSurfaceId);
+        this.previewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, this.preViewSurfaceId);
         targetSession?.beginConfig();
         targetSession?.addOutput(this.previewOutput);
         await targetSession?.commitConfig();
@@ -383,19 +384,43 @@ export default class CameraSession {
   }
 
   /**
-   * 录制准备
+   * @note 录制准备
+   * @param options RecordVideoOptions
+   * @param props VisionCameraViewSpec.RawProps
+   * @returns videoOutput
    */
   async recordPrepared(options: RecordVideoOptions, props: VisionCameraViewSpec.RawProps) {
     if (this.avRecorder) {
       await this.avRecorder.release();
     }
     this.avRecorder = await media.createAVRecorder();
+    try {
+      await this.avRecorder.prepare(this.prepareAVRecorderConfig(options, props));
+    } catch (error) {
+      Logger.error(TAG, `avRecorder.prepare.error ${JSON.stringify(error)}`);
+    }
+    let videoSurfaceId = await this.avRecorder.getInputSurface();
+    let videoOutput: camera.VideoOutput;
+    try {
+      videoOutput = this.cameraManager.createVideoOutput(this.videoProfile, videoSurfaceId);
+    } catch (error) {
+      Logger.error(TAG, `recordPrepared createVideoOutput.error ${JSON.stringify(error)}`);
+      this.onError(`recordPrepared createVideoOutput.error ${JSON.stringify(error)}`)
+    }
+    return videoOutput;
+  }
+
+  /**
+   * 配置 AVRecorderConfig
+   */
+  prepareAVRecorderConfig(options: RecordVideoOptions, props: VisionCameraViewSpec.RawProps): media.AVRecorderConfig {
     let videoBitRate: number = 1
     if (typeof options.videoBitRate === 'number') {
       videoBitRate = options.videoBitRate
     } else if (typeof options.videoBitRate === 'string') {
       videoBitRate = this.getBitRateMultiplier(options.videoBitRate)
     }
+
     let fps = props.fps | 30;
     let { min:minFps, max:maxFps } = this.videoProfile.frameRateRange;
     if (fps > maxFps) {
@@ -405,7 +430,6 @@ export default class CameraSession {
       fps = minFps;
       this.onError('The fps is lower than the minimum value.')
     }
-
 
     let audioConfig = {
       audioChannels: 2,
@@ -425,7 +449,8 @@ export default class CameraSession {
     let videoConfigProfile: media.AVRecorderProfile = this.hasAudio ? {
       ...audioConfig, ...videoConfig
     } : videoConfig
-    this.videoUri = `${this.basicPath}/${this.outPathArray[1]}/${Date.now()}.${options.fileType || 'mp4'}`;
+    this.videoUri =
+      `${this.basicPath}/${this.outPathArray[1]}/${Date.parse(new Date().toString())}.${options.fileType || 'mp4'}`;
     this.videoFile = fs.openSync(this.videoUri, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
     let aVAudio = {
       audioSourceType: media.AudioSourceType.AUDIO_SOURCE_TYPE_MIC
@@ -439,24 +464,9 @@ export default class CameraSession {
         latitude: 30, longitude: 130
       }
     }
-    let aVRecorderConfig: media.AVRecorderConfig = this.hasAudio ? {
+    return this.hasAudio ? {
       ...aVAudio, ...aVVideo
     } : aVVideo;
-    try {
-      await this.avRecorder.prepare(aVRecorderConfig);
-    } catch (error) {
-      Logger.error(TAG, `avRecorder.prepare.error ${JSON.stringify(error)}`);
-    }
-
-    let videoSurfaceId = await this.avRecorder.getInputSurface();
-    let videoOutput: camera.VideoOutput;
-    try {
-      videoOutput = this.cameraManager.createVideoOutput(this.videoProfile, videoSurfaceId);
-    } catch (error) {
-      Logger.error(TAG, `recordPrepared createVideoOutput.error ${JSON.stringify(error)}`);
-      this.onError(`recordPrepared createVideoOutput.error ${JSON.stringify(error)}`)
-    }
-    return videoOutput;
   }
 
   private getBitRateMultiplier(bitRate: RecordVideoOptions['videoBitRate']): number {
@@ -473,7 +483,6 @@ export default class CameraSession {
         return 1.4
     }
   }
-
 
   //设置预览样式 cover/contain
   setResizeMode(_resizeMode: string, displayWidth: number = 1216, displayHeight: number = 2688,
@@ -680,6 +689,7 @@ export default class CameraSession {
       Logger.error(TAG, `releaseCamera end error: ${JSON.stringify(error)}`);
       this.onError(`releaseCamera end error: ${JSON.stringify(error)}`)
     }
+    Logger.info(TAG, `camera released!`);
   }
 
   // 通过弹窗获取需要保存到媒体库的位于应用沙箱的图片/视频uri
@@ -1033,7 +1043,7 @@ export default class CameraSession {
   private getSupportedVideoStabilizationMode(videoSession: camera.VideoSession) {
     let supportedVideoStabilizationMode: Array<VideoStabilizationMode> = [];
     if (!videoSession) {
-      Logger.error(TAG, `getSupportedVideoStabilizationMode params videoSession is empty`)
+      Logger.warn(TAG, `getSupportedVideoStabilizationMode params videoSession is empty`)
       return supportedVideoStabilizationMode;
     }
     if (videoSession.isVideoStabilizationModeSupported(camera.VideoStabilizationMode.OFF)) {
@@ -1095,22 +1105,34 @@ export default class CameraSession {
   }
 
   /**
-   * @param options
-   * 开始录制
+   * @note 开始录制
+   * @param options RecordVideoOptions
+   * @param props VisionCameraViewSpec.RawProps
    */
   async startRecording(options: RecordVideoOptions, props: VisionCameraViewSpec.RawProps) {
+    if (this.avRecorder.state === 'stopped' || this.avRecorder.state === 'idle') {
+      try {
+        // 重新进入 prepared 状态
+        await this.avRecorder.prepare(this.prepareAVRecorderConfig(options, props));
+        await this.avRecorder.getInputSurface();
+      } catch (error) {
+        Logger.error(TAG, `restart recording error: ${JSON.stringify(error)}`);
+      }
+    }
     if (options.fileType && options.fileType !== media.ContainerFormatType.CFT_MPEG_4) {
       this.onError('Video file encapsulation format. Only MP4 is supported.');
     }
     this.setVideoFlashMode(options.flash);
 
     try {
+      // 开始录制
       await this.avRecorder.start();
     } catch (error) {
       Logger.error(TAG, 'startRecording catch Failed to start recording.' + JSON.stringify(error))
       this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
         new CameraCaptureError('capture/recording-in-progress', 'Failed to start recording.'));
     }
+    // 启动录像输出流
     this.videoOutput.start((err: BusinessError) => {
       if (err) {
         Logger.error(TAG, 'startRecording videoOutput.start Failed to start recording.' + JSON.stringify(err))
@@ -1125,16 +1147,30 @@ export default class CameraSession {
    * 停止录制
    */
   async stopRecording() {
-    if (this.avRecorder.state === 'started' || this.avRecorder.state === 'paused') {
-      await this.avRecorder.stop();
-      this.videoOutput.stop((err: BusinessError) => {
-        if (err) {
-          Logger.error(TAG, `stopRecording: Failed to stop the video output. error: ${JSON.stringify(err)}`);
-          return;
+    if (this.avRecorder != undefined) {
+      if (this.avRecorder.state === 'started' || this.avRecorder.state === 'paused') {
+        try {
+          // 停止录制
+          await this.avRecorder.stop();
+        } catch (error) {
+          let err = error as BusinessError;
+          Logger.error(TAG, `stopRecording: Failed to stop the avRecorder. error: ${JSON.stringify(err)}`);
+          this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
+            new CameraCaptureError('capture/recording-in-progress', 'Failed to stop recording.'));
         }
-      });
-      // 2.重置
-      await this.avRecorder.release();
+        // 停止录像输出流
+        this.videoOutput.stop((err: BusinessError) => {
+          if (err) {
+            Logger.error(TAG, `stopRecording: Failed to stop the video output. error: ${JSON.stringify(err)}`);
+            this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
+              new CameraCaptureError('capture/recording-in-progress', 'Failed to stop recording.'));
+            return;
+          }
+        });
+      }
+      // 重置
+      await this.avRecorder.reset();
+      // 此处不要释放录制实例，否则需要重新创建 videoOutput 加入 session里，会导致画面闪断
 
       if (this.videoSession.hasFlash() &&
         this.videoSession.getFlashMode() === camera.FlashMode.FLASH_MODE_ALWAYS_OPEN &&
@@ -1142,11 +1178,17 @@ export default class CameraSession {
         this.videoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_CLOSE);
       }
 
-      let avMetadataExtractor: media.AVMetadataExtractor = await media.createAVMetadataExtractor()
+      let avMetadataExtractor: media.AVMetadataExtractor = await media.createAVMetadataExtractor();
       avMetadataExtractor.fdSrc = {
         fd: this.videoFile.fd
       }
-      let avMetadata: media.AVMetadata = await avMetadataExtractor.fetchMetadata()
+      let avMetadata: media.AVMetadata;
+      try {
+        avMetadata = await avMetadataExtractor.fetchMetadata();
+      } catch (error) {
+        let err = error as BusinessError;
+        Logger.error(TAG, `avMetadataExtractor fetch error: ${JSON.stringify(err)}`);
+      }
       let duration: number = parseInt(avMetadata.duration) / 1000
       this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingFinished', {
         height: parseInt(avMetadata.videoHeight),
@@ -1154,17 +1196,24 @@ export default class CameraSession {
         path: this.videoUri,
         duration: Math.floor(duration)
       });
+
+      // 关闭文件
       fs.closeSync(this.videoFile);
+      this.videoFile = undefined;
     }
   }
 
-  // 暂停录制
+  /**
+   * 暂停录制
+   */
   async pauseRecording() {
-    if (this.avRecorder.state === 'started') {
+    if (this.avRecorder != undefined && this.avRecorder.state === 'started') {
       await this.avRecorder.pause();
       this.videoOutput.stop((err: BusinessError) => {
         if (err) {
           Logger.error(TAG, `pauseRecording: Failed to stop the video output. error: ${JSON.stringify(err)}`);
+          this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
+            new CameraCaptureError('capture/recording-in-progress', 'Failed to stop the video output.'));
           return;
         }
       });
@@ -1175,14 +1224,16 @@ export default class CameraSession {
    * 恢复录制
    */
   async resumeRecording() {
-    if (this.avRecorder.state === 'paused') {
-      await this.avRecorder.resume();
+    if (this.avRecorder != undefined && this.avRecorder.state === 'paused') {
       this.videoOutput.start((err: BusinessError) => {
         if (err) {
-          Logger.error(TAG, `resumeRecording: Failed to stop the video output. error: ${JSON.stringify(err)}`);
+          Logger.error(TAG, `resumeRecording: Failed to start the video output. error: ${JSON.stringify(err)}`);
+          this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
+            new CameraCaptureError('capture/recording-in-progress', 'Failed to stop the video output.'));
           return;
         }
       });
+      await this.avRecorder.resume();
     }
   }
 
