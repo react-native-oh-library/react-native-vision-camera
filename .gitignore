@@ -67,3 +67,5 @@ package-lock.json
 .cxx/
 
 example/ios/vendor
+
+*.tgz
