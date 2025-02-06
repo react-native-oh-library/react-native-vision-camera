@@ -1,11 +1,11 @@
 {
   "name": "@react-native-oh-tpl/react-native-vision-camera",
   "version": "4.0.1-0.0.18",
-  "description": "Please describe the basic information.",
+  "description": "",
   "main": "Index.ets",
   "author": "",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "dependencies": {
-    "@rnoh/react-native-openharmony": "file:../react_native_openharmony"
+    "@rnoh/react-native-openharmony": "0.72.38"
   }
 }
