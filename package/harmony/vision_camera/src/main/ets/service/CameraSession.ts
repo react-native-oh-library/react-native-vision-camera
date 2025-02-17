@@ -287,7 +287,33 @@ export default class CameraSession {
       }
       this.previewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, surfaceId);
     }
-    this.photoProfile = this.capability.photoProfiles[0];
+    this.photoProfile = this.capability.photoProfiles.find(profile => {
+      // 优先寻找相同尺寸的
+      return profile.size.width === this.previewProfile.size.width &&
+        profile.size.height === this.previewProfile.size.height
+    })
+    if (this.photoProfile === undefined) {
+      // 如果没有相同尺寸的，寻找相近尺寸的
+      const MIN_HEIGHT = 1080
+      const MIN_WIDTH = 1920
+      const ProfileSizeRatio = this.previewProfile.size.width / this.previewProfile.size.height;
+      let selectedProfile = this.capability.photoProfiles[this.capability.photoProfiles.length - 1];
+      let selectedProfileRatio = selectedProfile.size.width / selectedProfile.size.height;
+      for (let i = this.capability.photoProfiles.length - 1; i >= 0; --i) {
+        const currentProfile = this.capability.photoProfiles[i];
+        if (currentProfile.size.height < MIN_HEIGHT || currentProfile.size.width < MIN_WIDTH) {
+          // 限制最小尺寸
+          continue
+        }
+        const currentRatio = currentProfile.size.width / currentProfile.size.height
+        if (Math.abs(currentRatio - ProfileSizeRatio) <= Math.abs(selectedProfileRatio - ProfileSizeRatio)) {
+          // 如果尺寸比例更接近，则替换
+          selectedProfile = currentProfile
+          selectedProfileRatio = currentRatio
+        }
+      }
+      this.photoProfile = selectedProfile
+    }
     this.photoSession = this.cameraManager?.createSession(camera.SceneMode.NORMAL_PHOTO);
     this.photoOutPut = this.cameraManager.createPhotoOutput(this.photoProfile);
     this.photoSession.beginConfig();
@@ -300,7 +326,6 @@ export default class CameraSession {
       await this.photoSession.commitConfig();
     } catch (error) {
       Logger.error(TAG, `initPhotoSession commitConfig error: ${JSON.stringify(error)}`);
-      this.onError(`initPhotoSession commitConfig error: ${JSON.stringify(error)}`)
     }
   }
 
