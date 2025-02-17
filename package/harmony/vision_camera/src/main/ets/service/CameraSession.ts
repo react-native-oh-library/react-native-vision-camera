@@ -56,7 +56,7 @@ export default class CameraSession {
   private basicPath: string = '';
   private outPathArray: string[] = ['photo', 'video'];
   private videoFile: fs.File;
-
+  public uphasAudio: boolean = false;
   private videoSize: camera.Size = {
     width: 1920,
     height: 1080
@@ -1110,8 +1110,14 @@ export default class CameraSession {
    * @param props VisionCameraViewSpec.RawProps
    */
   async startRecording(options: RecordVideoOptions, props: VisionCameraViewSpec.RawProps) {
-    if (this.avRecorder.state === 'stopped' || this.avRecorder.state === 'idle') {
+    if (this.avRecorder.state === 'stopped' || this.avRecorder.state === 'idle'|| (this.avRecorder.state === 'prepared'
+      && this.uphasAudio)) {
       try {
+        //首次进入更改录像配置需要重新重转置
+        if(this.uphasAudio){
+          await this.avRecorder.reset();
+          this.uphasAudio = false
+        }
         // 重新进入 prepared 状态
         await this.avRecorder.prepare(this.prepareAVRecorderConfig(options, props));
         await this.avRecorder.getInputSurface();

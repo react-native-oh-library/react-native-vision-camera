@@ -192,6 +192,7 @@ export struct VisionCameraView {
 
   //更新props
   updateProps(props: VisionCameraViewSpec.RawProps) {
+    this.cameraSession.uphasAudio = true;
     this.defaultGrantPermission(props);
     this.cameraSession.changeCameraPosition({
       surfaceId: this.surfaceId, props,
