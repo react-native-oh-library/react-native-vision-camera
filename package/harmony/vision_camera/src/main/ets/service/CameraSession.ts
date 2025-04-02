@@ -536,6 +536,7 @@ export default class CameraSession {
     this.rect = {
       surfaceWidth: componentWidth, surfaceHeight: componentHeight
     }
+    componentWidth = componentHeight * (9 / 16)
     callback(componentWidth, componentHeight);
   }
 

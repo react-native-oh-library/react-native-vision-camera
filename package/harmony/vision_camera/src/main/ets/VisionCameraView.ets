@@ -69,6 +69,10 @@ export struct VisionCameraView {
   @State localDisplayHeight: number = 100;
   @State androidPreviewViewType: 'surface' | 'texture' = 'surface';
   private noViewPhoto: boolean = false;
+  @State maskWidth: number = 0;
+  @State maskHeight: number = 0;
+  @State maskOffsetx: string = '0px'
+  @State maskOffsety: string = '0px'
 
   aboutToAppear() {
     this.localDisplay = display.getDefaultDisplaySync();
@@ -84,9 +88,11 @@ export struct VisionCameraView {
     const props = descriptorBase.rawProps;
     const width = this.descriptorWrapper.width;
     const height = this.descriptorWrapper.height;
+    this.maskWidth = vp2px(width)
+    this.maskHeight = vp2px(height)
 
-    this.localDisplayWidth = vp2px(width) || this.localDisplay?.width;
-    this.localDisplayHeight = vp2px(height) || this.localDisplay?.height;
+    this.localDisplayWidth =  this.localDisplay?.width;
+    this.localDisplayHeight = this.localDisplay?.height;
     this.enableZoomGesture = props.enableZoomGesture;
     this.registerCommandCallback();
 
@@ -248,10 +254,19 @@ export struct VisionCameraView {
       }
       this.cameraSession.setVideoStabilizationMode(false, props.videoStabilizationMode);
     }
+    this.maskWidth = Math.floor(vp2px(this.descriptorWrapper.width))
+    this.maskHeight = Math.floor(vp2px(this.descriptorWrapper.height))
+    this.maskOffsetx = this.calculateX(this.maskWidth) + 'px'
+    this.maskOffsety = this.calculateY(this.maskHeight) + 'px'
     this.cameraSession.setResizeMode(props.resizeMode, this.localDisplayWidth, this.localDisplayHeight,
-      (width, height) => {
-        this.componentWidth = width;
-        this.componentHeight = height;
+     (width, height) => {
+       if(this.maskWidth < width)
+       {
+          this.maskWidth = width
+       }
+      this.componentWidth = width;
+      this.componentHeight = height;
+
       });
 
     this.pageFlag = !this.pageFlag;
@@ -415,7 +430,23 @@ export struct VisionCameraView {
     }
 
   }
-
+  /**
+   * 计算裁剪X 偏移量
+   */
+  calculateX(maskWidth: number) {
+    const slope = 12 / 13;    // 斜率
+    const intercept = -4630;  // 截距
+    return slope * maskWidth + intercept;
+  }
+  /**
+   * 计算裁剪Y 偏移量
+   */
+  calculateY(maskHeight: number) {
+  // 精确分数计算: y = (-29/13)x - 20
+  const slope = -29 / 13;  // 精确斜率
+  const intercept = -20;   // 精确截距
+  return Math.round(slope * maskHeight + intercept);
+}
   /**
    * 拍照
    */
@@ -538,6 +569,7 @@ export struct VisionCameraView {
             .width(this.cameraState === cameraState.SCAN ? this.localDisplayWidth + 'px' : this.componentWidth + 'px')
             .height(this.cameraState === cameraState.SCAN ? this.localDisplayHeight + 'px' :
               this.componentHeight + 'px')
+            .clipShape(new Rect({width: this.maskWidth,height: this.maskHeight}).offset({x:this.maskOffsetx,y: this.maskOffsety}))
         }
         .onClick((clickEvent) => {
           if (this.cameraState === cameraState.PHOTO) {
