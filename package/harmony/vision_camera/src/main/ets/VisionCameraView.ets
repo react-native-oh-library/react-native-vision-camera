@@ -91,8 +91,8 @@ export struct VisionCameraView {
     this.maskWidth = vp2px(width)
     this.maskHeight = vp2px(height)
 
-    this.localDisplayWidth =  this.localDisplay?.width;
-    this.localDisplayHeight = this.localDisplay?.height;
+    this.localDisplayWidth = (this.maskWidth > 0) ? this.maskWidth : this.localDisplay?.width;
+    this.localDisplayHeight = (this.maskHeight > 0) ? this.maskHeight : this.localDisplay?.height;
     this.enableZoomGesture = props.enableZoomGesture;
     this.registerCommandCallback();
 
@@ -569,7 +569,6 @@ export struct VisionCameraView {
             .width(this.cameraState === cameraState.SCAN ? this.localDisplayWidth + 'px' : this.componentWidth + 'px')
             .height(this.cameraState === cameraState.SCAN ? this.localDisplayHeight + 'px' :
               this.componentHeight + 'px')
-            .clipShape(new Rect({width: this.maskWidth,height: this.maskHeight}).offset({x:this.maskOffsetx,y: this.maskOffsety}))
         }
         .onClick((clickEvent) => {
           if (this.cameraState === cameraState.PHOTO) {
