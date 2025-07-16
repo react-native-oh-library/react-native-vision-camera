@@ -446,7 +446,7 @@ export default class CameraSession {
       videoBitRate = this.getBitRateMultiplier(options.videoBitRate)
     }
 
-    let fps = props.fps | 30;
+    let fps = props.fps || 30;
     let { min:minFps, max:maxFps } = this.videoProfile.frameRateRange;
     if (fps > maxFps) {
       fps = maxFps;
