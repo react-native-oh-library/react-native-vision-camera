@@ -565,6 +565,8 @@ export struct VisionCameraView {
           })
             .onLoad(() => {
               this.surfaceId = this.mXComponentController.getXComponentSurfaceId();
+              let surfaceRotaion: SurfaceRotationOptions = {lock: true};
+              this.mXComponentController.setXComponentSurfaceRotation(surfaceRotaion);
             })
             .width(this.cameraState === cameraState.SCAN ? this.localDisplayWidth + 'px' : this.componentWidth + 'px')
             .height(this.cameraState === cameraState.SCAN ? this.localDisplayHeight + 'px' :

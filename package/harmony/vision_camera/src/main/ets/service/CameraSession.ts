@@ -29,6 +29,8 @@ const TAG: string = 'RNCameraSession'
 type ZoomRangeType = [number, number];
 
 export default class CameraSession {
+  private isMirror: boolean = false;
+  private position: string = 'back';
   context: Context = undefined;
   phAccessHelper: photoAccessHelper.PhotoAccessHelper = undefined;
   private cameraManager?: camera.CameraManager;
@@ -71,7 +73,7 @@ export default class CameraSession {
   public previewProfile: camera.Profile = {} as camera.Profile;
   private photoCaptureSetting: camera.PhotoCaptureSetting = {
     rotation: camera.ImageRotation.ROTATION_0,
-    mirror: false,
+    mirror: this.isMirror,
     quality: camera.QualityLevel.QUALITY_LEVEL_MEDIUM,
   };
   private videoStartParams: RecordVideoOptions = {
@@ -141,6 +143,7 @@ export default class CameraSession {
     }
     await this.cameraRelease();
     Logger.info(TAG, `changeCameraPosition: ${JSON.stringify(props.device?.position)}`);
+    this.position = props.device?.position;
     this.cameraManager = this.getCameraManagerFn();
     this.initCamera(surfaceId, props, mediaModel)
   }
@@ -197,6 +200,10 @@ export default class CameraSession {
    * 初始化props参数
    */
   async initProps(props) {
+    this.position = props.device?.position;
+    if (props.isMirror !== undefined && props.device?.position !== undefined) {
+      this.setMirror(props.isMirror, props.device?.position);
+    }
     if (props.exposure !== undefined) {
       this.setExposure(props.exposure);
     }
@@ -214,6 +221,14 @@ export default class CameraSession {
     }
     if (props.enableLocation) {
       this.setPhotoLocationSetting(props.enableLocation);
+    }
+  }
+
+  setMirror(isMirror, position) {
+    if ('front' === position) {
+      this.photoCaptureSetting.mirror = !isMirror;
+    } else {
+      this.photoCaptureSetting.mirror = isMirror;
     }
   }
 
@@ -446,7 +461,7 @@ export default class CameraSession {
       videoBitRate = this.getBitRateMultiplier(options.videoBitRate)
     }
 
-    let fps = props.fps || 30;
+    let fps = props.fps | 30;
     let { min:minFps, max:maxFps } = this.videoProfile.frameRateRange;
     if (fps > maxFps) {
       fps = maxFps;

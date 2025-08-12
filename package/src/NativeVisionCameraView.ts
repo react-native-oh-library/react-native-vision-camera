@@ -95,6 +95,7 @@ interface CodeScanner {
 export interface NativeVisionCameraProps extends ViewProps {
   codeScanner?: CodeScanner;
   fps?: WithDefault<Int32, 30>;
+  isMirror: boolean;
   videoHdr?: WithDefault<boolean, false>;
   isActive: boolean;
   preview?: WithDefault<boolean, true>;

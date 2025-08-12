@@ -26,6 +26,7 @@ protected:
         object.setProperty(rt, "enableZoomGesture", true);
         object.setProperty(rt, "exposure", true);
         object.setProperty(rt, "zoom", true);
+        object.setProperty(rt, "isMirror", true);
         object.setProperty(rt, "audio", true);
         object.setProperty(rt, "video", true);
         object.setProperty(rt, "torch", true);

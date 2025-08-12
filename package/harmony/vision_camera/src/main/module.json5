@@ -20,6 +20,11 @@
         "name": "ohos.permission.APPROXIMATELY_LOCATION",
         "reason": "$string:location_reason",
         "usedScene": {}
+      },
+      {
+        "name": "ohos.permission.GYROSCOPE",
+        "reason": "$string:location_reason",
+        "usedScene": {}
       }
     ]
   }
