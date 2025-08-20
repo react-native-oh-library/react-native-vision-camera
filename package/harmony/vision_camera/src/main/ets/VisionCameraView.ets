@@ -29,6 +29,8 @@ import { RecordVideoOptions } from './types/VideoFile';
 import { Permissions } from '@kit.AbilityKit';
 import { scanBarcode } from '@kit.ScanKit'
 import { BusinessError } from '@kit.BasicServicesKit'
+import { ICallBack, MP4Parser } from '@ohos/mp4parser';
+import fileio from '@ohos.fileio';
 
 const previewViewType: Record<'surface-view' | 'texture-view', 'surface' | 'texture'> = {
   'surface-view': 'surface',
@@ -524,9 +526,84 @@ export struct VisionCameraView {
   /**
    * 停止录制
    */
-  stopRecording() {
-    this.cameraSession.stopRecording()
+  async stopRecording() {
+    await this.cameraSession.stopRecording()
+    //当帧率设置30fps时直接回调，不需要转换，系统默认录制出来是30fps
+    if(this.cameraSession.fps == 30) {
+      this.cameraSession.sendOnRecordingFinishedEvent();
+      return;
+    }
+    //由于系统Api media.AVRecorder->prepare录制后videoFrameRate设置无效，因此使用FFmpeg处理帧率转换
+    let inPath =  this.cameraSession.videoUri;
+    let outPath = this.context.cacheDir + "/temp.mp4";
+    let this_ = this;
+    let callBack: ICallBack = {
+      async callBackResult(code: number) {
+         if (code == 0 ) {  //处理转换帧率成功
+           await this_.copyFile(outPath,inPath);
+           this_.cameraSession.sendOnRecordingFinishedEvent();
+         } else {
+           this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingError',
+             new CameraCaptureError('capture/recording-in-progress', 'Failed to stop recording.'));
+         }
+      }
+    }
+    MP4Parser.ffmpegCmd("ffmpeg -y -i "+inPath+" -r "+this.cameraSession.fps+" -c:v libopenh264 -c:a copy "+outPath,callBack)
   }
+
+  /**
+   * 拷贝文件
+   * @param srcPath
+   * @param destPath
+   * @returns
+   */
+  async  copyFile(srcPath: string, destPath: string): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    let srcFd: number = -1;
+    let destFd: number = -1;
+    const bufferSize: number = 4096;
+    const buffer: ArrayBuffer = new ArrayBuffer(bufferSize);
+
+    try {
+      srcFd = await fileio.open(srcPath, 0o102, 0o666);
+      if (srcFd === -1) {
+        throw new Error(`Unable to open the source file: ${srcPath}`);
+      }
+      destFd = await fileio.open(destPath, 0o102, 0o666);
+      if (destFd === -1) {
+        throw new Error(`Unable to open the target file: ${destPath}`);
+      }
+      let bytesRead: number;
+      do {
+        bytesRead = await fileio.readSync(srcFd, buffer);
+        if (bytesRead > 0) {
+          const bytesWritten = await fileio.write(destFd, buffer, { length: bytesRead });
+          if (bytesWritten !== bytesRead) {
+            throw new Error(`Writing the file is incomplete. It was expected to write ${bytesRead} bytes, but actually wrote ${bytesWritten} bytes`);
+          }
+        }
+      } while (bytesRead > 0);
+      resolve();
+    } catch (err) {
+      reject(new Error(`File copy failed: ${err.message}`));
+    } finally {
+      if (srcFd !== -1) {
+        try {
+          await fileio.close(srcFd);
+        } catch (closeErr) {
+          Logger.error(`Failed to close the source file descriptor: ${closeErr.message}`);
+        }
+      }
+      if (destFd !== -1) {
+        try {
+          await fileio.close(destFd);
+        } catch (closeErr) {
+          Logger.error(`Failed to close the target file descriptor: ${closeErr.message}`);
+        }
+      }
+    }
+  });
+ }
 
   /**
    * 暂停录制

@@ -61,7 +61,7 @@ export default class CameraSession {
     width: 1920,
     height: 1080
   }
-  private videoUri: string;
+  public videoUri: string;
   private hasAudio: boolean = false
   private ctx!: RNOHContext;
   private videoCodeC: 'h264' | 'h265' = 'h265'
@@ -85,6 +85,7 @@ export default class CameraSession {
   private offsetX: number = 0;
   // preview原点相对于设备原点y偏移量
   private offsetY: number = 0;
+  public fps: number = 30;
 
   constructor(_ctx?: RNOHContext) {
     _ctx && (this.ctx = _ctx);
@@ -446,13 +447,13 @@ export default class CameraSession {
       videoBitRate = this.getBitRateMultiplier(options.videoBitRate)
     }
 
-    let fps = props.fps || 30;
+    this.fps = props.fps || 30;
     let { min:minFps, max:maxFps } = this.videoProfile.frameRateRange;
-    if (fps > maxFps) {
-      fps = maxFps;
+    if (this.fps > maxFps) {
+      this.fps = maxFps;
       this.onError('The fps exceeds the maximum value.')
-    } else if (fps < minFps) {
-      fps = minFps;
+    } else if (this.fps < minFps) {
+      this.fps = minFps;
       this.onError('The fps is lower than the minimum value.')
     }
 
@@ -468,7 +469,7 @@ export default class CameraSession {
       videoCodec: options.videoCodec === 'h265' ? media.CodecMimeType.VIDEO_HEVC : media.CodecMimeType.VIDEO_AVC,
       videoFrameWidth: this.videoSize.width,
       videoFrameHeight: this.videoSize.height,
-      videoFrameRate: fps,
+      videoFrameRate: this.fps,
       isHdr: props.videoHdr ? props.videoHdr : false
     };
     let videoConfigProfile: media.AVRecorderProfile = this.hasAudio ? {
@@ -1209,30 +1210,34 @@ export default class CameraSession {
       this.videoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_CLOSE)) {
         this.videoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_CLOSE);
       }
-
-      let avMetadataExtractor: media.AVMetadataExtractor = await media.createAVMetadataExtractor();
-      avMetadataExtractor.fdSrc = {
-        fd: this.videoFile.fd
-      }
-      let avMetadata: media.AVMetadata;
-      try {
-        avMetadata = await avMetadataExtractor.fetchMetadata();
-      } catch (error) {
-        let err = error as BusinessError;
-        Logger.error(TAG, `avMetadataExtractor fetch error: ${JSON.stringify(err)}`);
-      }
-      let duration: number = parseInt(avMetadata.duration) / 1000
-      this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingFinished', {
-        height: parseInt(avMetadata.videoHeight),
-        width: parseInt(avMetadata.videoWidth),
-        path: this.videoUri,
-        duration: Math.floor(duration)
-      });
-
-      // 关闭文件
-      fs.closeSync(this.videoFile);
-      this.videoFile = undefined;
     }
+  }
+
+  /**
+   * 发送录制成功回调事件
+   */
+  async sendOnRecordingFinishedEvent() {
+    let avMetadataExtractor: media.AVMetadataExtractor = await media.createAVMetadataExtractor();
+    avMetadataExtractor.fdSrc = {
+      fd: this.videoFile.fd
+    }
+    let avMetadata: media.AVMetadata;
+    try {
+      avMetadata = await avMetadataExtractor.fetchMetadata();
+    } catch (error) {
+      let err = error as BusinessError;
+      Logger.error(TAG, `avMetadataExtractor fetch error: ${JSON.stringify(err)}`);
+    }
+    let duration: number = parseInt(avMetadata.duration) / 1000
+    this.ctx && this.ctx.rnInstance.emitDeviceEvent('onRecordingFinished', {
+      height: parseInt(avMetadata.videoHeight),
+      width: parseInt(avMetadata.videoWidth),
+      path: this.videoUri,
+      duration: Math.floor(duration)
+    });
+    // 关闭文件
+    fs.closeSync(this.videoFile);
+    this.videoFile = undefined;
   }
 
   /**
