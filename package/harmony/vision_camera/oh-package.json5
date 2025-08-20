@@ -6,6 +6,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@rnoh/react-native-openharmony": "0.72.38"
+    "@rnoh/react-native-openharmony": "0.72.38",
+    "@ohos/mp4parser": "^2.0.6"
   }
 }
