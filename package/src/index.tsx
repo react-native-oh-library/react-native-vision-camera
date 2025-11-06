@@ -97,6 +97,7 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             style,
             device,
             isActive,
+            isMirrored,
             preview,
             resizeMode,
             fps,
@@ -459,6 +460,7 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
                     ref={VisionCameraRef}
                     style={StyleSheet.absoluteFill}
                     codeScanner={codeScanner}
+                    isMirrored={isMirrored}
                     fps={fps}
                     videoHdr={videoHdr}
                     isActive={isActive}
