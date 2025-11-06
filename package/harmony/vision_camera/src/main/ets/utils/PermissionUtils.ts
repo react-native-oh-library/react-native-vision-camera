@@ -1,7 +1,16 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd. All rights reserved
- * Use of this source code is governed by a MIT license that can be
- * found in the LICENSE file.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 
@@ -9,7 +18,7 @@ import abilityAccessCtrl, { PermissionRequestResult } from '@ohos.abilityAccessC
 import { Permissions } from '@ohos.abilityAccessCtrl';
 import bundleManager from '@ohos.bundle.bundleManager';
 import Logger from './Logger';
-import { PermissionArray } from '../core/CameraConfig';
+import { PermissionArray } from '../datamodel/interface/CameraConfig';
 import common from '@ohos.app.ability.common';
 
 const TAG: string = '[Permission]';
@@ -36,12 +45,12 @@ export default class PermissionUtils {
         );
       let appInfo: bundleManager.ApplicationInfo = bundleInfo.appInfo;
       let tokenId = appInfo.accessTokenId;
-      Logger.info(TAG,
+      Logger.debug(TAG,
         `defaultGrantPermission tokenId :${tokenId},atManager:${this.atManager} checkAccessToken  + : ${JSON.stringify(permissions)}`);
       for (let i = 0; i < permissions.length; i++) {
         try {
           let state = await this.atManager.checkAccessToken(tokenId, permissions[i]);
-          Logger.info(TAG,
+          Logger.debug(TAG,
             `defaultGrantPermission  checkAccessToken ${permissions[i]} + : ${JSON.stringify(state)}`);
           if (state !== abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
             pems.push(permissions[i]);
@@ -52,13 +61,13 @@ export default class PermissionUtils {
         }
       }
       if (pems.length > 0) {
-        Logger.info(TAG, 'defaultGrantPermission requestPermissionsFromUser :' + JSON.stringify(pems));
+        Logger.debug(TAG, 'defaultGrantPermission requestPermissionsFromUser :' + JSON.stringify(pems));
         let result: PermissionRequestResult = await this.atManager.requestPermissionsFromUser(this.context, pems);
 
         let grantStatus: Array<number> = result.authResults;
         let length: number = grantStatus.length;
         for (let i = 0; i < length; i++) {
-          Logger.info(TAG,
+          Logger.debug(TAG,
             `defaultGrantPermission  requestPermissionsFromUser ${result.permissions[i]} + : ${grantStatus[i]}`);
           if (grantStatus[i] === 0) {
             // 用户授权，可以继续访问目标操作
@@ -70,32 +79,32 @@ export default class PermissionUtils {
         }
       }
       // 授权成功
-      Logger.info(TAG, 'defaultGrantPermission  success ');
+      Logger.debug(TAG, 'defaultGrantPermission  success ');
       return true;
     } catch (e) {
-      Logger.info(TAG, `defaultGrantPermission  fail, error:${e}`);
+      Logger.debug(TAG, `defaultGrantPermission  fail, error:${e}`);
       return false;
     }
   }
 
   checkPermission(permission: Permissions): boolean {
-    Logger.info(TAG, `checkAccessToken ${permission} begin`);
+    Logger.debug(TAG, `checkAccessToken ${permission} begin`);
     let bundleInfo: bundleManager.BundleInfo = bundleManager.getBundleInfoForSelfSync(
       bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION
     )
     let appInfo: bundleManager.ApplicationInfo = bundleInfo.appInfo;
     let tokenId = appInfo.accessTokenId;
     let state = this.atManager.checkAccessTokenSync(tokenId, permission);
-    Logger.info(TAG, `checkAccessToken permission:${permission} = ${JSON.stringify(state)}`);
+    Logger.debug(TAG, `checkAccessToken permission:${permission} = ${JSON.stringify(state)}`);
     return state === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
   }
 
   grantPermission(permission: Permissions): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      Logger.info(TAG, `grantPermission  grantPermission ${permission} begin`);
+      Logger.debug(TAG, `grantPermission  grantPermission ${permission} begin`);
       this.atManager.requestPermissionsFromUser(this.context, [permission])
         .then((data: PermissionRequestResult) => {
-          Logger.info(TAG, `grantPermission  grantPermission ${permission} : ${JSON.stringify(data.authResults)}`);
+          Logger.debug(TAG, `grantPermission  grantPermission ${permission} : ${JSON.stringify(data.authResults)}`);
           resolve(data?.authResults[0] === 0)
         }).catch((error) => {
         Logger.error(TAG, `grantPermission ${permission} : ${JSON.stringify(error)}`);

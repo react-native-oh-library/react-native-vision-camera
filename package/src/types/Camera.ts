@@ -8,6 +8,7 @@ export interface VisionCameraProps extends ViewProps {
     device: CameraDevice
     isActive: boolean
     preview?: boolean
+    isMirrored: boolean
     video?: boolean
     audio?: boolean
     torch?: 'off' | 'on'
