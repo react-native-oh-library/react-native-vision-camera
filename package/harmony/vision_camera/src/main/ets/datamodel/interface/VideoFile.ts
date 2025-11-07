@@ -19,6 +19,7 @@ import type { TemporaryFile } from './TemporaryFile'
 export interface RecordVideoOptions {
   flash?: 'on' | 'off'
   fileType?: 'mov' | 'mp4'
+  path?: string
   onRecordingError: (error: CameraCaptureError) => void
   onRecordingFinished: (video: VideoFile) => void
   videoCodec?: 'h264' | 'h265'

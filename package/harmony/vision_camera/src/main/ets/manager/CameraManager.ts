@@ -112,9 +112,9 @@ export default class CameraManager {
   ): Promise<void> {
     const { surfaceId, props, mediaModel } = config;
     this.isFront = props.device?.position === 'front';
-    Logger.debug(TAG, `changeCameraPosition isFront ` + this.isFront);
+    Logger.debug(TAG, `changeCameraPosition isFront `+ this.isFront);
     if (!this.currCameraDevice) {
-      return;
+       return;
     }
     const newFoldStatus = display.getFoldStatus();
     if (
@@ -140,7 +140,7 @@ export default class CameraManager {
     this.foldStatus = display.getFoldStatus();
 
     Logger.debug(TAG, `changeCameraPosition: ${JSON.stringify(this.newCameraDevice?.cameraPosition)}`);
-    this.cameraManager = CommonManager.getCameraManagerFn(this.ctx, this.context);
+    this.cameraManager= CommonManager.getCameraManagerFn(this.ctx, this.context);
     await this.initCamera(surfaceId, props, mediaModel, xwidth, xheight);
   }
 
@@ -168,8 +168,7 @@ export default class CameraManager {
       Logger.error(TAG, 'initCamera check cameraManager is empty');
       return;
     }
-    this.currCameraDevice =
-      this.newCameraDevice ?? CommonManager.getNewCameraDevice(this.ctx, props.device?.position, this.cameraManager);
+    this.currCameraDevice = this.newCameraDevice ?? CommonManager.getNewCameraDevice(this.ctx, props.device?.position, this.cameraManager);
     await this.cameraRelease();
     if (this.mediaModel === camera.SceneMode.NORMAL_PHOTO) {
       this.photoSession =
@@ -307,11 +306,11 @@ export default class CameraManager {
   async activeChange(isActive: boolean): Promise<void> {
 
     let targetSession = this.photoSession;
-    if (this.photoSession && this.mediaModel == camera.SceneMode.NORMAL_PHOTO) {
+    if(this.photoSession && this.mediaModel == camera.SceneMode.NORMAL_PHOTO) {
       targetSession = this.photoSession;
     }
 
-    if (this.videoSession && this.mediaModel == camera.SceneMode.NORMAL_VIDEO) {
+    if(this.videoSession && this.mediaModel == camera.SceneMode.NORMAL_VIDEO) {
       targetSession = this.videoSession;
     }
 
@@ -624,4 +623,5 @@ export default class CameraManager {
   async copyFile(srcPath: string, destPath: string): Promise<void> {
     return this.videoManager?.copyFile(srcPath, destPath);
   }
+
 }
