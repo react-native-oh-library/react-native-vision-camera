@@ -118,6 +118,7 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             onTouchEnd,
             onStarted,
             onStopped,
+            onPreviewStarted,
             onInitialized,
             onShutter,
             onError,
@@ -339,6 +340,13 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             [onStarted]
         );
 
+        const onVisionCameraPreviewStarted = useCallback(
+            () => {
+                onPreviewStarted?.();
+            },
+            [onPreviewStarted]
+        );
+
         const onVisionCameraTouchEnd = useCallback(
             (event: GestureResponderEvent) => {
                 onTouchEnd?.(event);
@@ -396,6 +404,9 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
             const onStoppedListener = DeviceEventEmitter.addListener('onCameraStopped', () => {
                 onStopped?.();
             });
+            const onPreviewStartedListener = DeviceEventEmitter.addListener('onPreviewStarted', () => {
+                onPreviewStarted?.();
+            });
             const onErrorListener = DeviceEventEmitter.addListener('onError', (err) => {
                 onError?.(err);
             });
@@ -407,6 +418,7 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
                 onShutterListener.remove();
                 onStartedListener.remove();
                 onStoppedListener.remove();
+                onPreviewStartedListener.remove();
                 onErrorListener.remove();
                 onCodeScannedListener.remove();
             }
@@ -480,6 +492,7 @@ export const Camera = forwardRef<VisionCameraRef, VisionCameraProps>(
                     photoQualityBalance={photoQualityBalance}
                     onStarted={onVisionCameraStarted}
                     onStopped={onVisionCameraStopped}
+                    onPreviewStarted={onVisionCameraPreviewStarted}
                     onInitialized={onVisionCameraInitialized}
                     onShutter={onVisionCameraShutter}
                     onError={onVisionCameraError}

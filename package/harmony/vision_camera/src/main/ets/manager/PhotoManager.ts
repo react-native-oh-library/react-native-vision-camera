@@ -45,13 +45,18 @@ export class PhotoManager {
   private photoPath: string = '';
   private basicPath: string = '';
   private previewSurfaceId: string;
+  private customPhotoPath: string = undefined;
   // 显示/成像预览比例是否反转，横向时为true
   private isRatioReverted: boolean = false;
   /**
    * 旋转角度
    */
   private degree: number = 0;
+
+  private noPath: number = 13900002;
+
   private isMirrored: boolean = false;
+
   /**
    * 折叠设备是否被设置
    */
@@ -117,6 +122,7 @@ export class PhotoManager {
         });
       }
       this.previewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, surfaceId);
+      this.registerPreviewFrameListeners();
     }
     Logger.debug(this.TAG,
       "initPhotoSession previewProfile " + this.previewProfile + " width " + this.previewProfile.size.width +
@@ -162,7 +168,14 @@ export class PhotoManager {
 
   // 保存图片
   async savePicture(photoAccess: photoAccessHelper.PhotoAsset): Promise<string> {
-    let photoFile = `${this.basicPath}/photo/${Date.now().toString()}.jpeg`;
+    let photoFile: string;
+    let PhotoPath = this.customPhotoPath;
+    this.customPhotoPath = undefined;
+    if (PhotoPath) {
+      photoFile = `${PhotoPath}/${Date.now().toString()}.jpeg`;
+    } else {
+      photoFile = `${this.basicPath}/photo/${Date.now().toString()}.jpeg`;
+    }
     // photoFile = await this.getMediaLibraryUri(photoFile, `${Date.now()}`, 'jpeg', photoAccessHelper.PhotoType.IMAGE)
     // 根据相机拍照图片路径，获取文件buffer
     let file = fs.openSync(photoAccess.uri, fs.OpenMode.READ_ONLY);
@@ -203,6 +216,12 @@ export class PhotoManager {
         this.photoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_AUTO)
       ) {
         this.photoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_AUTO);
+      }
+    }
+    if (options?.path !== undefined) {
+      this.customPhotoPath = await this.getDirectoryAsync(options.path);
+      if (this.customPhotoPath == undefined) {
+        return;
       }
     }
     this.photoCaptureSetting.rotation = this.getPhotoRotation(this.photoOutPut!, this.degree);
@@ -267,7 +286,7 @@ export class PhotoManager {
   private waitForPathResult(): Promise<void> {
     return new Promise(resolve => {
       const intervalId = setInterval(() => {
-        Logger.debug(this.TAG,"waitForPathResult "+this.photoPath)
+        Logger.debug(this.TAG, "waitForPathResult " + this.photoPath)
         if (this.photoPath !== '') {
           clearInterval(intervalId);
           resolve();
@@ -405,6 +424,7 @@ export class PhotoManager {
 
   async cameraRelease() {
     try {
+      this.unregisterPreviewFrameListeners();
       if (this.cameraInput) {
         await this.cameraInput.close();
         this.cameraInput = undefined;
@@ -432,5 +452,73 @@ export class PhotoManager {
 
   setPreviewRotation(videoHdr: boolean): boolean {
     return CommonManager.setPreviewRotation(this.previewOutput, videoHdr)
+  }
+
+  // 注册预览帧的监听
+  registerPreviewFrameListeners() {
+    console.trace()
+    if (this.previewOutput) {
+      this.previewOutput.on('frameStart', (err: BusinessError) => {
+        if (err !== undefined && err.code !== 0) {
+          console.error(`registerPreviewFrameListeners Callback Error, errorCode: ${err.code}`);
+          return;
+        }
+        this.ctx && this.ctx.rnInstance.emitDeviceEvent('onPreviewStarted', {});
+      });
+    } else {
+      Logger.error(this.TAG, 'previewOutput is not initialized, cannot register frame listeners');
+    }
+  }
+
+  // 取消预览帧的监听
+  unregisterPreviewFrameListeners() {
+    if (this.previewOutput) {
+      this.previewOutput.off('frameStart');
+    } else {
+      Logger.error(this.TAG, 'previewOutput is not initialized, cannot unregister frame listeners');
+    }
+  }
+
+  async getDirectoryAsync(path: string | null): Promise<string> {
+    if (path === "") {
+      this.ctx &&
+      this.ctx.rnInstance.emitDeviceEvent('onError', new CameraCaptureError('capture/invalid-path',
+        'The given path (null) is invalid, or not writable!'));
+      return;
+    }
+    let formattedPath = path;
+    formattedPath = formattedPath.replace(/\/+/g, '/');
+    if (formattedPath !== '/') {
+      formattedPath = formattedPath.replace(/\/$/, '');
+    }
+    if (!formattedPath.startsWith('/data/storage/el2')) {
+      this.ctx &&
+      this.ctx?.rnInstance.emitDeviceEvent('onError', new CameraCaptureError(
+        'capture/invalid-path',
+        'The given path is invalid, or not writable!'
+      ));
+      return;
+    }
+
+    try {
+      await fs.stat(formattedPath);
+    } catch (statError) {
+      if (statError.code === this.noPath) {
+        try {
+          await fs.mkdir(formattedPath);
+        } catch (mkdirError) {
+          this.ctx &&
+          this.ctx.rnInstance.emitDeviceEvent('onError', new CameraCaptureError('capture/invalid-path',
+            `The given path (` + formattedPath + `) is invalid, or not writable!`));
+          return;
+        }
+      } else {
+        this.ctx &&
+        this.ctx.rnInstance.emitDeviceEvent('onError', new CameraCaptureError('capture/invalid-path',
+          `The given path (` + formattedPath + `) is invalid, or not writable!`));
+        return;
+      }
+    }
+    return formattedPath;
   }
 }

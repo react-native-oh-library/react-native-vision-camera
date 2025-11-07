@@ -43,6 +43,7 @@ class VisionCameraViewJSIBinder : public ViewComponentJSIBinder {
         facebook::jsi::Object events(rt);
         events.setProperty(rt, "topStarted", createBubblingCapturedEvent(rt, "onStarted"));
         events.setProperty(rt, "topStopped", createBubblingCapturedEvent(rt, "onStopped"));
+        events.setProperty(rt, "topPreviewStarted", createBubblingCapturedEvent(rt, "onPreviewStarted"));
         events.setProperty(rt, "topInitialized", createBubblingCapturedEvent(rt, "onInitialized"));
         events.setProperty(rt, "topError", createBubblingCapturedEvent(rt, "onError"));
         events.setProperty(rt, "topCodeScan", createBubblingCapturedEvent(rt, "onCodeScan"));

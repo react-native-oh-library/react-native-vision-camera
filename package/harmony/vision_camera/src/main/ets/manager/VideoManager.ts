@@ -62,7 +62,7 @@ export class VideoManager {
   private previewSurfaceId: string;
   private uphasAudio: boolean = false;
   private currVideoCodec: string = "h265"
-
+  private noPath: number = 13900002;
   private videoStartParams: RecordVideoOptions = {
     onRecordingError: error => {
     },
@@ -140,12 +140,12 @@ export class VideoManager {
           PreviewViewUtils.getTargetPreviewProfile(PreviewViewUtils.getTargetRatio(false, this.uiContext),
             previewProfilesArray, xwidth, xheight);
       }
-
       Logger.debug(this.TAG,
         "initVideoSession previewProfile " + this.previewProfile + " width " + this.previewProfile?.size.width +
           '  height ' + this.previewProfile?.size.height)
 
       this.previewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, surfaceId);
+      this.registerPreviewFrameListeners();
     }
     if (!display.isFoldable() || xwidth / xheight == 16 / 9) {
       this.videoProfile = this.capability.videoProfiles.find((profile: camera.VideoProfile) => {
@@ -292,13 +292,6 @@ export class VideoManager {
     if (options.videoCodec) {
       this.currVideoCodec = options.videoCodec;
     }
-    let videoBitRate: number = 1;
-    if (typeof options.videoBitRate === 'number') {
-      videoBitRate = options.videoBitRate;
-    } else if (typeof options.videoBitRate === 'string') {
-      videoBitRate = this.getBitRateMultiplier(options.videoBitRate);
-    }
-
     this.fps = props.fps || 30;
     let { min: minFps, max: maxFps } = this.videoProfile.frameRateRange;
     if (this.fps > maxFps) {
@@ -308,7 +301,8 @@ export class VideoManager {
       this.fps = minFps;
       CommonManager.onError(this.ctx, 'The fps is lower than the minimum value.');
     }
-    Logger.debug(this.TAG, "prepareAVRecorderConfig options " + JSON.stringify(options)+" fps "+this.videoProfile.frameRateRange.max)
+    Logger.debug(this.TAG,
+      "prepareAVRecorderConfig options " + JSON.stringify(options) + " fps " + this.videoProfile.frameRateRange.max)
     let audioConfig = {
       audioChannels: 2,
       audioCodec: media.CodecMimeType.AUDIO_AAC,
@@ -333,6 +327,16 @@ export class VideoManager {
         ...videoConfig,
       }
       : videoConfig;
+    if (options?.path !== undefined) {
+      let customVideoPath = this.getDirectorySync(options.path);
+      if (customVideoPath == undefined) {
+        return;
+      }
+      this.videoUri = `${customVideoPath}/${Date.parse(new Date().toString())}.${options.fileType || 'mp4'}`;
+    } else {
+      this.videoUri =
+        `${this.basicPath}/video/${Date.parse(new Date().toString())}.${options.fileType || 'mp4'}`;
+    }
     this.videoUri = `${this.basicPath}/video/${Date.parse(new Date().toString())}.${
     options.fileType || 'mp4'
     }`;
@@ -378,7 +382,7 @@ export class VideoManager {
     if (mode === 'cinematic-extended') {
       videoMode = camera.VideoStabilizationMode.HIGH;
     }
-    Logger.debug(this.TAG, "setVideoStabilizationMode mode "+mode)
+    Logger.debug(this.TAG, "setVideoStabilizationMode mode " + mode)
     let isSupported: boolean = false;
     try {
       isSupported = this.videoSession.isVideoStabilizationModeSupported(videoMode);
@@ -407,21 +411,6 @@ export class VideoManager {
           `the device does not support the ${mode} video stabilization mode.`,
         ),
       );
-    }
-  }
-
-  private getBitRateMultiplier(bitRate: RecordVideoOptions['videoBitRate']): number {
-    switch (bitRate) {
-      case 'extra-low':
-        return 0.6;
-      case 'low':
-        return 0.8;
-      case 'normal':
-        return 1;
-      case 'high':
-        return 1.2;
-      case 'extra-high':
-        return 1.4;
     }
   }
 
@@ -480,10 +469,12 @@ export class VideoManager {
       await this.videoSession?.beginConfig();
       if (this.previewOutput) {
         await this.videoSession?.removeOutput(this.previewOutput);
+        this.unregisterPreviewFrameListeners();
         await this.previewOutput.release();
       }
       let localPreviewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, this.previewSurfaceId);
       this.previewOutput = localPreviewOutput;
+      this.registerPreviewFrameListeners();
       await this.videoSession?.addOutput(localPreviewOutput);
 
       let localVideoOutput = await this.recordPrepared(this.videoStartParams, props, xwidth, xheight);
@@ -522,7 +513,8 @@ export class VideoManager {
     deviceDegree: number,
   ) {
     if (this.avRecorder.state === 'stopped' || this.avRecorder.state === 'idle' ||
-      (this.avRecorder.state === 'prepared' && !props.videoHdr && (this.uphasAudio || (this.currVideoCodec !== options.videoCodec)))) {
+      (this.avRecorder.state === 'prepared' && !props.videoHdr &&
+        (this.uphasAudio || (this.currVideoCodec !== options.videoCodec)))) {
       try {
         this.uphasAudio = false;
         Logger.debug(this.TAG, "startRecording reset videoCodec " + options.videoCodec)
@@ -723,6 +715,7 @@ export class VideoManager {
       } else {
         this.previewProfile = this.capability.previewProfiles[this.capability.previewProfiles.length - 1];
         this.previewOutput = this.cameraManager.createPreviewOutput(this.previewProfile, this.previewSurfaceId);
+        this.registerPreviewFrameListeners();
         this.videoSession?.beginConfig();
         this.videoSession?.addOutput(this.previewOutput);
         await this.videoSession?.commitConfig();
@@ -745,6 +738,7 @@ export class VideoManager {
         this.cameraInput = undefined;
       }
       if (this.previewOutput) {
+        this.unregisterPreviewFrameListeners();
         await this.previewOutput.release();
         this.previewOutput = undefined;
       }
@@ -789,7 +783,7 @@ export class VideoManager {
   setPreviewRotation(videoHdr: boolean): boolean {
     return CommonManager.setPreviewRotation(this.previewOutput, videoHdr)
   }
-  
+
   /**
    * 拷贝文件
    * @param srcPath
@@ -842,5 +836,71 @@ export class VideoManager {
         }
       }
     });
+  }
+
+  getDirectorySync(path: string | null): string {
+    if (path === "") {
+      this.ctx &&
+      this.ctx.rnInstance.emitDeviceEvent('onError', new CameraCaptureError('capture/invalid-path',
+        'The given path (null) is invalid, or not writable!'));
+      return;
+    }
+    let formattedPath = path;
+    formattedPath = formattedPath.replace(/\/+/g, '/');
+    if (formattedPath !== '/') {
+      formattedPath = formattedPath.replace(/\/$/, '');
+    }
+    if (!formattedPath.startsWith('/data/storage/el2')) {
+      this.ctx &&
+      this.ctx ?.rnInstance.emitDeviceEvent('onError', new CameraCaptureError(
+        'capture/invalid-path',
+        'The given path is invalid, or not writable!'
+      ));
+      return;
+    }
+    try {
+      fs.statSync(formattedPath);
+    } catch (statError) {
+      if (statError.code === this.noPath) {
+        try {
+          fs.mkdirSync(formattedPath);
+        } catch (mkdirError) {
+          this.ctx &&
+          this.ctx.rnInstance.emitDeviceEvent('onError', new CameraCaptureError('capture/invalid-path',
+            `The given path (` + formattedPath + `) is invalid, or not writable!`));
+          return;
+        }
+      } else {
+        this.ctx &&
+        this.ctx.rnInstance.emitDeviceEvent('onError', new CameraCaptureError('capture/invalid-path',
+          `The given path (` + formattedPath + `) is invalid, or not writable!`));
+        return;
+      }
+    }
+    return formattedPath;
+  }
+
+  // 注册预览帧的监听
+  registerPreviewFrameListeners() {
+    if (this.previewOutput) {
+      this.previewOutput.on('frameStart', (err: BusinessError) => {
+        if (err !== undefined && err.code !== 0) {
+          console.error(`registerPreviewFrameListeners Callback Error, errorCode: ${err.code}`);
+          return;
+        }
+        this.ctx && this.ctx.rnInstance.emitDeviceEvent('onPreviewStarted', {});
+      });
+    } else {
+      Logger.error(this.TAG, 'previewOutput is not initialized, cannot register frame listeners');
+    }
+  }
+
+  // 取消预览帧的监听
+  unregisterPreviewFrameListeners() {
+    if (this.previewOutput) {
+      this.previewOutput.off('frameStart');
+    } else {
+      Logger.error(this.TAG, 'previewOutput is not initialized, cannot unregister frame listeners');
+    }
   }
 }

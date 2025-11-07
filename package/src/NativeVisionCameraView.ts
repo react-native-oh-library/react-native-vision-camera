@@ -74,6 +74,7 @@ type CodeType =
   | 'ean-13'
   | 'ean-8'
   | 'itf'
+  | 'itf-14'
   | 'upc-e'
   | 'upc-a'
   | 'qr'

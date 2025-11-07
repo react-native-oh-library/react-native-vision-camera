@@ -26,6 +26,7 @@ export interface Point {
 export interface TakePhotoOptions {
 
   flash?: 'on' | 'off' | 'auto'
+  path: string
   enableAutoRedEyeReduction?: boolean
   enableAutoDistortionCorrection?: boolean
   enableShutterSound?: boolean
