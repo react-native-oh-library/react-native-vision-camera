@@ -531,6 +531,27 @@ export class VideoManager {
         this.videoOutput = this.cameraManager.createVideoOutput(this.videoProfile, videoSurfaceId);
         this.videoSession.addOutput(this.videoOutput);
         await this.videoSession?.commitConfig();
+        try {
+          const isMirror = props.isMirrored;
+          Logger.debug(
+            this.TAG,
+            'startRecording isMirrorSupported ' + this.videoOutput?.isMirrorSupported()
+          );
+          if (this.videoOutput?.isMirrorSupported() && props.device?.position !== undefined && isMirror !== undefined) {
+            Logger.debug(this.TAG, 'startRecording enableMirror');
+            this.videoOutput.enableMirror(props.device.position === 'front' ? !isMirror : isMirror);
+          }
+        } catch (e) {
+          Logger.error(this.TAG, 'Error startRecording enableMirror failed');
+        }
+        //当设置比例1:1时不支持设置防抖动模式，会引起旋转90度
+        if (xwidth / xheight !== 1) {
+          if (props.videoHdr) {
+            await this.setVideoStabilizationMode(true);
+          } else {
+            await this.setVideoStabilizationMode(false, props.videoStabilizationMode);
+          }
+        }
         await this.videoSession?.start();
       } catch (error) {
         Logger.error(this.TAG, `restart recording error: ${JSON.stringify(error)}`);
