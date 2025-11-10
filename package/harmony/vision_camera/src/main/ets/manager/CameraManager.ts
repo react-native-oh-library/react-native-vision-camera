@@ -219,7 +219,9 @@ export default class CameraManager {
    * @param position
    */
   setMirror(isMirror, position, isMultipleDevices) {
-    this.photoManager?.setMirror(isMirror, position, isMultipleDevices)
+    if (this.mediaModel === camera.SceneMode.NORMAL_PHOTO) {
+      this.photoManager?.setMirror(isMirror, position, isMultipleDevices);
+    }
   }
 
   /**
