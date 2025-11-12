@@ -15,13 +15,48 @@
 
 import { display, Size, window } from '@kit.ArkUI';
 import Logger from './Logger';
+import { camera } from '@kit.CameraKit';
 
 const TAG = 'WindowUtil'
 
 class WindowUtil {
+  private static topWindow: window.Window;
+
+  static setTopWindow(topWindow: window.Window) {
+    WindowUtil.topWindow = topWindow;
+  }
 
   // Given a ratio, obtain the maximum display width and height based on the screen width and height.
   static getMaxDisplaySize(ratio: number): Size {
+    let displaySize: Size = { width: 0, height: 0 };
+    try {
+      if (!WindowUtil.topWindow) {
+        Logger.debug(TAG, `getDisplaySizeByDisplay`);
+        return this.getDisplaySizeByDisplay(ratio);
+      }
+      const width = WindowUtil.topWindow.getWindowProperties().windowRect.width;
+      const height = WindowUtil.topWindow.getWindowProperties().windowRect.height;
+      const defaultDisplay = display.getDefaultDisplaySync();
+      let targetRatio = ratio;
+      const rotation = defaultDisplay.rotation * camera.ImageRotation.ROTATION_90;
+      if (rotation === camera.ImageRotation.ROTATION_90 || rotation === camera.ImageRotation.ROTATION_270) {
+        targetRatio = 1 / targetRatio;
+      }
+      const screenRatio = height / width;
+      if (targetRatio >= screenRatio) {
+        displaySize = { width: height / targetRatio, height: height };
+      } else {
+        displaySize = { width: width, height: width * targetRatio };
+      }
+      Logger.debug(TAG, `displaySize ${JSON.stringify(displaySize)}`);
+    } catch (err) {
+      Logger.error(TAG, `getMaxDisplaySize failed, code is ${err.code}, message is ${err.message}`);
+    } finally {
+      return displaySize;
+    }
+  }
+
+  static getDisplaySizeByDisplay(ratio: number): Size {
     let defaultDisplay: display.Display | null = null;
     try {
       defaultDisplay = display.getDefaultDisplaySync();
