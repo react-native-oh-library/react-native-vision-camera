@@ -115,6 +115,7 @@ export struct VisionCameraView {
           Logger.error(TAG, `failed to obtain the top window, code: ${err.code}, message: ${err.message}`);
           return;
         }
+        WindowUtil.setTopWindow(topWindow);
         this.topWindow = topWindow;
       })
     } catch (err) {
