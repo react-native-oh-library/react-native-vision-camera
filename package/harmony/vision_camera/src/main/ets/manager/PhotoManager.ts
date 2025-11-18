@@ -232,7 +232,8 @@ export class PhotoManager {
       }
       await this.photoOutPut.capture(this.photoCaptureSetting);
     } catch (e) {
-      Logger.error(this.TAG, "Error capture: " + JSON.stringify(e))
+      Logger.error(this.TAG, "Error capture: " + JSON.stringify(e));
+      CommonManager.onError(this.ctx,"Error capture failed, please check camera permission.");
     }
     await this.waitForPathResult();
     let photoFile: PhotoFile = {} as PhotoFile;

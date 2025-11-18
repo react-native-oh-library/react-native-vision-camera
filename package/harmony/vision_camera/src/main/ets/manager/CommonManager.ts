@@ -108,7 +108,7 @@ export class CommonManager {
     if (ctx) {
       ctx.rnInstance?.emitDeviceEvent('onError', {
         nativeEvent: {
-          errorMessage: `${CommonManager.TAG}: ${message}`,
+          errorMessage: `${message}`,
         },
       });
     }
