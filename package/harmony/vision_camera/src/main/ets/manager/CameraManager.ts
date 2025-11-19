@@ -307,7 +307,7 @@ export default class CameraManager {
   //开始预览 isActive:true
   async activeChange(isActive: boolean): Promise<void> {
 
-    let targetSession = this.photoSession;
+    let targetSession;
     if(this.photoSession && this.mediaModel == camera.SceneMode.NORMAL_PHOTO) {
       targetSession = this.photoSession;
     }
