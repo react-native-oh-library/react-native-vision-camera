@@ -203,6 +203,11 @@ export class PhotoManager {
    * 拍照
    */
   async takePhoto(options: TakePhotoOptions): Promise<PhotoFile> {
+    if (!this.photoSession) {
+      Logger.error(this.TAG, "Error photoSession null, please check camera permission.");
+      CommonManager.onError(this.ctx,"Error photoSession null, please check camera permission.");
+      return;
+    }
     if (options && this.photoSession.hasFlash()) {
       if (options.flash === 'on' && this.photoSession?.isFlashModeSupported(camera.FlashMode.FLASH_MODE_OPEN)) {
         this.photoSession?.setFlashMode(camera.FlashMode.FLASH_MODE_OPEN);
