@@ -46,6 +46,7 @@ import PreviewViewUtils, { CameraMode } from '../utils/PreviewViewUtils';
 import WindowUtil from '../utils/WindowUtil';
 import CameraManager from '../manager/CameraManager';
 import CameraConstants from '../datamodel/constant/CameraConstants';
+import { CommonManager } from '../manager/CommonManager';
 
 const previewViewType: Record<'surface-view' | 'texture-view', 'surface' | 'texture'> = {
   'surface-view': 'surface',
@@ -743,7 +744,11 @@ export struct VisionCameraView {
           // 在组件上绑定三指触发的捏合手势
           PinchGesture({ fingers: 2 })// 当捏合手势触发时，可以通过回调函数获取缩放比例，从而修改组件的缩放比例
             .onActionUpdate((event: GestureEvent) => {
-              this.scaleValue = this.cameraManager.getPhotoPreviewScale() * event.scale;
+              try {
+               this.scaleValue = this.cameraManager.getPhotoPreviewScale() * event.scale;
+              } catch (e) {
+                Logger.error(TAG,"Error get scaleValue failed");
+              }
             })
             .onActionEnd(() => {
               if (this.enableZoomGesture) {
