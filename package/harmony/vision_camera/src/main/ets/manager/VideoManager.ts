@@ -512,6 +512,11 @@ export class VideoManager {
     xheight: number,
     deviceDegree: number,
   ) {
+    if (options.fileType && options.fileType !== media.ContainerFormatType.CFT_MPEG_4) {
+      CommonManager.onError(this.ctx, 'Video file encapsulation format. Only MP4 is supported.');
+      Logger.error(this.TAG, 'Video file encapsulation format. Only MP4 is supported.');
+      return;
+    }
     if (this.avRecorder.state === 'stopped' || this.avRecorder.state === 'idle' ||
       (this.avRecorder.state === 'prepared' && !props.videoHdr &&
         (this.uphasAudio || (this.currVideoCodec !== options.videoCodec)))) {
@@ -557,13 +562,7 @@ export class VideoManager {
         Logger.error(this.TAG, `restart recording error: ${JSON.stringify(error)}`);
       }
     }
-    if (options.fileType && options.fileType !== media.ContainerFormatType.CFT_MPEG_4) {
-      CommonManager.onError(this.ctx, 'Video file encapsulation format. Only MP4 is supported.');
-      Logger.error(this.TAG, 'Video file encapsulation format. Only MP4 is supported.');
-      return;
-    }
     this.setVideoFlashMode(options.flash);
-
     try {
       // 更新角度
       await this.avRecorder.updateRotation(this.getVideoRotation(this.videoOutput, deviceDegree));
