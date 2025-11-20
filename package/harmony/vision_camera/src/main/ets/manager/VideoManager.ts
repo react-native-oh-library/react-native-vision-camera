@@ -559,6 +559,8 @@ export class VideoManager {
     }
     if (options.fileType && options.fileType !== media.ContainerFormatType.CFT_MPEG_4) {
       CommonManager.onError(this.ctx, 'Video file encapsulation format. Only MP4 is supported.');
+      Logger.error(this.TAG, 'Video file encapsulation format. Only MP4 is supported.');
+      return;
     }
     this.setVideoFlashMode(options.flash);
 
