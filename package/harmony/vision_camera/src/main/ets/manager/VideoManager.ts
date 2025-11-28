@@ -29,6 +29,7 @@ import { colorSpaceManager } from "@kit.ArkGraphics2D";
 import { CommonManager } from "./CommonManager";
 import { Context } from '@ohos.arkui.UIContext';
 import fileio from '@ohos.fileio';
+import geoLocationManager from '@ohos.geoLocationManager';
 
 
 export class VideoManager {
@@ -70,6 +71,7 @@ export class VideoManager {
     },
     videoCodec: this.videoCodeC,
   };
+  private enableLocation: boolean = false;
 
 
   constructor(_ctx: RNOHContext, context_: Context, _uiContext: UIContext,) {
@@ -264,7 +266,7 @@ export class VideoManager {
     }
     this.avRecorder = await media.createAVRecorder();
     try {
-      await this.avRecorder.prepare(this.prepareAVRecorderConfig(options, props, xwidth, xheight));
+      await this.avRecorder.prepare(await this.prepareAVRecorderConfig(options, props, xwidth, xheight));
     } catch (error) {
       Logger.error(this.TAG, `Error avRecorder prepare ${JSON.stringify(error)}`);
       CommonManager.onError(this.ctx, `Error avRecorder prepare ${JSON.stringify(error)}`);
@@ -283,12 +285,12 @@ export class VideoManager {
   /**
    * 配置 AVRecorderConfig
    */
-  prepareAVRecorderConfig(
+  async prepareAVRecorderConfig(
     options: RecordVideoOptions,
     props: VisionCameraViewSpec.RawProps,
     xwidth: number,
     xheight: number,
-  ): media.AVRecorderConfig {
+  ): Promise<media.AVRecorderConfig> {
     if (options.videoCodec) {
       this.currVideoCodec = options.videoCodec;
     }
@@ -349,11 +351,22 @@ export class VideoManager {
       profile: videoConfigProfile,
       url: `fd://${this.videoFile.fd.toString()}`, // 文件需先由调用者创建，赋予读写权限，将文件fd传给此参数，eg.fd://45--file:///data/media/01.mp4
       rotation: 90, // 合理值0、90、180、270，非合理值prepare接口将报错
-      location: {
-        latitude: 30,
-        longitude: 130,
-      },
+      //默认关闭位置信息
+      location:{
+        latitude: 0,
+        longitude: 0
+      }
     };
+    //启用位置信息
+    if(this.enableLocation) {
+      aVVideo = {
+        videoSourceType: media.VideoSourceType.VIDEO_SOURCE_TYPE_SURFACE_YUV,
+        profile: videoConfigProfile,
+        url: `fd://${this.videoFile.fd.toString()}`, // 文件需先由调用者创建，赋予读写权限，将文件fd传给此参数，eg.fd://45--file:///data/media/01.mp4
+        rotation: 90, // 合理值0、90、180、270，非合理值prepare接口将报错
+        location: await this.getLocation()
+      };
+    }
     return this.hasAudio
       ? {
         ...aVAudio,
@@ -524,7 +537,7 @@ export class VideoManager {
         this.uphasAudio = false;
         Logger.debug(this.TAG, "startRecording reset videoCodec " + options.videoCodec)
         await this.avRecorder.reset();
-        await this.avRecorder.prepare(this.prepareAVRecorderConfig(options, props, xwidth, xheight));
+        await this.avRecorder.prepare(await this.prepareAVRecorderConfig(options, props, xwidth, xheight));
         let videoSurfaceId = await this.avRecorder.getInputSurface();
         //切换编码格式需要重新设置videoOutPut
         await this.videoSession?.stop();
@@ -923,6 +936,35 @@ export class VideoManager {
       this.previewOutput.off('frameStart');
     } else {
       Logger.error(this.TAG, 'previewOutput is not initialized, cannot unregister frame listeners');
+    }
+  }
+
+  setEnableLocation(enableLocation: boolean) {
+    this.enableLocation = enableLocation;
+  }
+
+  async getLocation(): Promise<camera.Location> {
+    let requestInfo: geoLocationManager.CurrentLocationRequest = {
+      priority: geoLocationManager.LocationRequestPriority.FIRST_FIX,
+      scenario: geoLocationManager.LocationRequestScenario.UNSET,
+      maxAccuracy: 0,
+    };
+    try {
+      const result = await geoLocationManager.getCurrentLocation(requestInfo);
+      return result;
+    } catch (error) {
+      if (error.code === '3301100') {
+        Logger.error(this.TAG, `the switch for the location function is not turned on, error code: ${error?.code}.`);
+        this.ctx &&
+        this.ctx.rnInstance.emitDeviceEvent(
+          'onError',
+          new CameraCaptureError(
+            'capture/location-not-turned-on',
+            'the switch for the location function is not turned on.',
+          ),
+        );
+      }
+      Logger.error(this.TAG, `getCurrentLocation error, error code is ${error?.code}.`);
     }
   }
 }

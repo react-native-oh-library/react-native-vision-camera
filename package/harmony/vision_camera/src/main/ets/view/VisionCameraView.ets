@@ -366,7 +366,7 @@ export struct VisionCameraView {
       this.cameraManager.setPhotoQualitySetting(props.photoQualityBalance);
     }
     if (props.enableLocation !== undefined && this.prevProps?.enableLocation !== props.enableLocation) {
-      this.cameraManager.setPhotoLocationSetting(props.enableLocation);
+      this.cameraManager.setLocationSetting(props.enableLocation);
     }
     if (props.androidPreviewViewType && this.prevProps?.androidPreviewViewType !== props.androidPreviewViewType) {
       this.androidPreviewViewType = previewViewType[`${props.androidPreviewViewType}`];
