@@ -209,7 +209,7 @@ export default class CameraManager {
       this.setPhotoQualitySetting(props.photoQualityBalance);
     }
     if (props.enableLocation) {
-      this.setPhotoLocationSetting(props.enableLocation);
+      this.setLocationSetting(props.enableLocation);
     }
   }
 
@@ -528,8 +528,13 @@ export default class CameraManager {
    * 设置拍摄位置
    * @param enableLocation
    */
-  async setPhotoLocationSetting(enableLocation: boolean): Promise<void> {
-    this.photoManager?.setPhotoLocationSetting(enableLocation);
+  async setLocationSetting(enableLocation: boolean): Promise<void> {
+    if (this.mediaModel === camera.SceneMode.NORMAL_PHOTO) {
+      this.photoManager?.setPhotoLocationSetting(enableLocation);
+    }
+    if (this.mediaModel === camera.SceneMode.NORMAL_VIDEO) {
+      this.videoManager?.setEnableLocation(enableLocation);
+    }
   }
 
   initDeviceInfo(): CameraDeviceInfo[] {
